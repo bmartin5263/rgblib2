@@ -1,0 +1,5 @@
+/sdkconfig
+/cmake-build-debug/
+/build/
+/cmake-build-debug-esp-idf/
+/managed_components/
