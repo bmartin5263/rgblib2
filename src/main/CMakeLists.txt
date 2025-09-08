@@ -5,9 +5,10 @@ idf_component_register(
         "../core/Assertions.h"
         "../core/Brightness.cpp"
         "../core/Brightness.h"
-        "../core/Color.h"
         "../core/Clock.cpp"
         "../core/Clock.h"
+        "../core/ClockTime.h"
+        "../core/Color.h"
         "../core/Debug.cpp"
         "../core/Debug.h"
         "../core/Log.cpp"
@@ -25,14 +26,15 @@ idf_component_register(
         "../led/PixelGrid.h"
         "../led/PixelList.cpp"
         "../led/PixelList.h"
-        "../led/PixelSlice.h"
         "../led/PixelSlice.cpp"
+        "../led/PixelSlice.h"
 
         REQUIRES
         spi_flash led_strip
 
         INCLUDE_DIRS
-        "../led"
         "../core"
-
+        "../effect"
+        "../event"
+        "../led"
 )
