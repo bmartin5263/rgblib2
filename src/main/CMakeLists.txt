@@ -1,4 +1,7 @@
 idf_component_register(
+        REQUIRES
+        spi_flash led_strip esp_timer driver
+
         SRCS
         "main.cpp"
 
@@ -9,8 +12,14 @@ idf_component_register(
         "../core/Clock.h"
         "../core/ClockTime.h"
         "../core/Color.h"
+        "../core/Config.h"
         "../core/Debug.cpp"
         "../core/Debug.h"
+        "../core/Enumerate.h"
+        "../core/Every.h"
+        "../core/Func.h"
+        "../core/Handle.h"
+        "../core/Iterable.h"
         "../core/Log.cpp"
         "../core/Log.h"
         "../core/Point.h"
@@ -29,12 +38,19 @@ idf_component_register(
         "../led/PixelSlice.cpp"
         "../led/PixelSlice.h"
 
-        REQUIRES
-        spi_flash led_strip
+        "../time/Stopwatch.cpp"
+        "../time/Stopwatch.h"
+        "../time/Timer.cpp"
+        "../time/Timer.h"
+        "../time/TimerHandle.cpp"
+        "../time/TimerHandle.h"
+        "../time/TimerNode.cpp"
+        "../time/TimerNode.h"
 
         INCLUDE_DIRS
         "../core"
         "../effect"
         "../event"
         "../led"
+        "../time"
 )

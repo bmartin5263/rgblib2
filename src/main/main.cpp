@@ -58,11 +58,16 @@ auto printSystemInfo() {
 extern "C" void app_main()
 {
   printSystemInfo();
-  auto leds = rgb::LEDStrip<10>(2, led_pixel_format_t::LED_PIXEL_FORMAT_GRB);
+  printf("Hello, World!");
+
+  auto leds = rgb::LEDStrip<40>(2, led_pixel_format_t::LED_PIXEL_FORMAT_GRB);
+  leds.start();
   leds.reset();
 
   while (true) {
-    leds.fill(rgb::Color::BLUE());
+    leds.fill(rgb::Color::RED(.3f));
+    leds.display();
+    printf("Display!\n");
     vTaskDelay(1000 / portTICK_PERIOD_MS);
   }
 

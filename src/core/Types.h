@@ -21,6 +21,7 @@ using byte = u8;
 using u16 = uint16_t;
 using u32 = uint32_t;
 using u64 = uint64_t;
+using uint = unsigned int;
 
 using milliseconds_t = u64;
 using microseconds_t = u64;
@@ -29,9 +30,9 @@ using pin_num = i8;
 using fahrenheit = float;
 using percent = float;
 using celsius = float;
-using kph = float;
-using mph = float;
-using revs_per_minute = float;
+using kph = uint;
+using mph = uint;
+using revs_per_minute = uint;
 using cstring = const char*;
 using normal = float;
 using time_t = u64;
@@ -150,6 +151,7 @@ struct Duration : public number_wrapper<time_t, Duration> {
   static constexpr auto Milliseconds(time_t amount) -> Duration { return Duration(amount * 1000); }
   static constexpr auto Microseconds(time_t amount) -> Duration { return Duration(amount); }
   static constexpr auto Max() -> Duration { return Duration(std::numeric_limits<time_t>::max()); }
+  static constexpr auto Zero() -> Duration { return Duration(0); }
   [[nodiscard]] constexpr auto asSeconds() const -> time_t { return value / 1000000; }
   [[nodiscard]] constexpr auto asMinutes() const -> time_t { return value / 60000000; }
   [[nodiscard]] constexpr auto asMilliseconds() const -> time_t { return value / 1000; }
@@ -161,6 +163,7 @@ struct Timestamp : public number_wrapper<time_t, Timestamp> {
   constexpr explicit Timestamp(time_t microseconds) : number_wrapper<time_t, Timestamp>(microseconds) {}
   static constexpr auto OfMicroseconds(time_t amount) -> Timestamp { return Timestamp(amount); }
   static constexpr auto Max() -> Timestamp { return Timestamp(std::numeric_limits<time_t>::max()); }
+  static constexpr auto Zero() -> Timestamp { return Timestamp(0); }
   constexpr auto asSeconds() -> time_t { return value / 1000000; }
   constexpr auto asMinutes() -> time_t { return value / 60000000; }
   constexpr auto asMilliseconds() -> time_t { return value / 1000; }
@@ -225,6 +228,44 @@ struct Timestamp : public number_wrapper<time_t, Timestamp> {
     return Duration { value - earlierTime.value };
   }
 };
+
+/**
+ * static constexpr uint8_t D0         = 44; // also RX
+ * static constexpr uint8_t D1         = 43; // also TX
+ * static constexpr uint8_t D2         = 5;
+ * static constexpr uint8_t D3         = 6;  // also CTS
+ * static constexpr uint8_t D4         = 7;  // also DSR
+ * static constexpr uint8_t D5         = 8;
+ * static constexpr uint8_t D6         = 9;
+ * static constexpr uint8_t D7         = 10;
+ * static constexpr uint8_t D8         = 17;
+ * static constexpr uint8_t D9         = 18;
+ * static constexpr uint8_t D10        = 21; // also SS
+ * static constexpr uint8_t D11        = 38; // also MOSI
+ * static constexpr uint8_t D12        = 47; // also MISO
+ * static constexpr uint8_t D13        = 48; // also SCK, LED_BUILTIN
+ * static constexpr uint8_t LED_RED    = 46;
+ * static constexpr uint8_t LED_GREEN  = 0;
+ * static constexpr uint8_t LED_BLUE   = 45; // also RTS
+ *
+ * static constexpr uint8_t A0         = 1;  // also DTR
+ * static constexpr uint8_t A1         = 2;
+ * static constexpr uint8_t A2         = 3;
+ * static constexpr uint8_t A3         = 4;
+ * static constexpr uint8_t A4         = 11; // also SDA
+ * static constexpr uint8_t A5         = 12; // also SCL
+ * static constexpr uint8_t A6         = 13;
+ * static constexpr uint8_t A7         = 14;
+ */
+
+constexpr auto D2_RGB = 2;
+constexpr auto D3_RGB = 3;
+constexpr auto D4_RGB = 4;
+constexpr auto D5_RGB = 5;
+
+constexpr auto A4_RGB = 11;
+constexpr auto A5_RGB = 12;
+constexpr auto A6_RGB = 13;
 
 }
 

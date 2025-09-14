@@ -12,6 +12,8 @@ namespace rgb {
 
 class Clock {
 public:
+  static constexpr auto FRAME_TIME_US = 3333;
+
   static auto Start(frames_t fps) -> void;
 
   static auto StartTick() -> void;
@@ -41,6 +43,7 @@ private:
   frames_t mFpsCounter{};
   frames_t mLastFps{};
   frames_t mTargetFps{};
+  u64 mNextFrame{};
   microseconds_t mTickStart{};
   microseconds_t mLastFrameRateCheck{};
   microseconds_t mMaxMicrosPerFrame{};

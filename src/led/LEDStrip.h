@@ -48,9 +48,19 @@ public:
       }
     };
 
-    ASSERT(led_strip_new_rmt_device(&config, &rmtConfig, &leds), "Failed to create LEDs");
-    INFO("LED strip initialized");
+    auto result = led_strip_new_rmt_device(&config, &rmtConfig, &leds);
+    if (result == ESP_ERR_INVALID_ARG) {
+      printf("Invalid Argument\n");
+    }
+    else if (result == ESP_ERR_NO_MEM) {
+      printf("No Mem\n");
+    }
+    else if (result == ESP_FAIL) {
+      printf("ESP_FAIL\n");
+    }
+    ASSERT(result == ESP_OK, "LED failed\n");
 
+    printf("Started LEDs\n");
     started = true;
   }
 
@@ -78,14 +88,14 @@ public:
     if (reversed) {
       for (u16 i = 0; i < N; ++i) {
         auto& pixel = pixels[mapPixelToLED(N - 1 - i)];
-        led_strip_set_pixel_rgbw(leds, i, FloatToByte(pixel.r), FloatToByte(pixel.g), FloatToByte(pixel.b), FloatToByte(pixel.w));
+        led_strip_set_pixel(leds, i, FloatToByte(pixel.r), FloatToByte(pixel.g), FloatToByte(pixel.b));
       }
     }
     else {
       for (u16 i = 0; i < N; ++i) {
         auto pixel = pixels[i];
         auto led = mapPixelToLED(i);
-        led_strip_set_pixel_rgbw(leds, led, FloatToByte(pixel.r), FloatToByte(pixel.g), FloatToByte(pixel.b), FloatToByte(pixel.w));
+        led_strip_set_pixel(leds, led, FloatToByte(pixel.r), FloatToByte(pixel.g), FloatToByte(pixel.b));
       }
     }
     led_strip_refresh(leds);
