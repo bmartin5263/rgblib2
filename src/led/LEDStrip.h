@@ -13,14 +13,25 @@
 #include "PixelSlice.h"
 #include "LEDCircuit.h"
 #include "Log.h"
+#include "LEDCore.h"
 
 namespace rgb {
 
-template <u16 N>
+template <u16 N, const RgbFormat FORMAT, led_model_t MODEL = LED_MODEL_WS2812>
 class LEDStrip : public PixelList, public LEDCircuit {
+  Pixel pixels[N];
+  led_strip_handle_t leds;
+  int offset;
+  pin_num pin;
+  bool reversed;
+  bool started;
+
 public:
-  constexpr explicit LEDStrip(pin_num pin, led_pixel_format_t format, u16 offset = 0):
-    pixels{}, leds{}, offset{offset}, format{format}, pin{pin}, reversed{false}, started{false}
+  constexpr explicit LEDStrip(
+    pin_num pin,
+    u16 offset = 0
+  ):
+    pixels{}, leds{}, offset{offset}, pin{pin}, reversed{false}, started{false}
   {
   }
 
@@ -31,8 +42,8 @@ public:
     auto config = led_strip_config_t {
       .strip_gpio_num = pin,   // The GPIO that connected to the LED strip's data line
       .max_leds = N,          // The number of LEDs in the strip,
-      .led_pixel_format = format, // Pixel format of your LED strip
-      .led_model = LED_MODEL_WS2812,            // LED strip model
+      .led_pixel_format = FORMAT.nativeFormat, // Pixel format of your LED strip
+      .led_model = MODEL,            // LED strip model
       .flags {
         .invert_out = false,                // whether to invert the output signal
       }
@@ -88,14 +99,14 @@ public:
     if (reversed) {
       for (u16 i = 0; i < N; ++i) {
         auto& pixel = pixels[mapPixelToLED(N - 1 - i)];
-        led_strip_set_pixel(leds, i, FloatToByte(pixel.r), FloatToByte(pixel.g), FloatToByte(pixel.b));
+        FORMAT.writer(leds, i, pixel);
       }
     }
     else {
       for (u16 i = 0; i < N; ++i) {
         auto pixel = pixels[i];
         auto led = mapPixelToLED(i);
-        led_strip_set_pixel(leds, led, FloatToByte(pixel.r), FloatToByte(pixel.g), FloatToByte(pixel.b));
+        FORMAT.writer(leds, led, pixel);
       }
     }
     led_strip_refresh(leds);
@@ -122,15 +133,6 @@ public:
   auto mapPixelToLED(u16 pixel) -> u16 {
     return (pixel + offset) % N;
   }
-
-private:
-  Pixel pixels[N];
-  led_strip_handle_t leds;
-  int offset;
-  led_pixel_format_t format;
-  pin_num pin;
-  bool reversed;
-  bool started;
 };
 
 }

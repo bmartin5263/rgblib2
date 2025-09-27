@@ -12,9 +12,11 @@ namespace rgb {
 struct Point;
 class PixelGrid : public PixelList {
 public:
-  [[nodiscard]] virtual auto get(Point point) -> Pixel*;
-  [[nodiscard]] virtual auto operator[](Point point) -> Pixel&;
-  virtual auto set(Point point, const Color& color) -> void;
+  [[nodiscard]]
+  virtual auto get(Point point) -> Pixel* = 0;
+  [[nodiscard]]
+  virtual auto operator[](uint column, uint row) -> Pixel& = 0;
+  virtual auto set(Point point, const Color& color) -> void = 0;
 };
 
 }

@@ -8,6 +8,7 @@
 #include "esp_timer.h"
 #include "driver/gpio.h"
 #include "freertos/FreeRTOS.h"
+#include "System.h"
 
 namespace rgb {
 
@@ -94,7 +95,7 @@ auto Clock::Milli() -> milliseconds_t {
 }
 
 auto Clock::Now() -> Timestamp {
-  return Timestamp{static_cast<u64>(esp_timer_get_time())};
+  return Timestamp{static_cast<u64>(system::microTime())};
 }
 
 auto Clock::Delta() -> Duration {

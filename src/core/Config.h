@@ -9,7 +9,6 @@
 
 namespace rgb::config {
 
-constexpr auto FPS = 300;
 constexpr auto LED_OTA_CONNECTED = 0;
 constexpr auto LED_VEHICLE_CONNECTED = 0;
 constexpr auto LED_DROPPING_FRAMES = 0;

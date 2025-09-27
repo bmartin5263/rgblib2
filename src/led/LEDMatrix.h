@@ -11,16 +11,26 @@
 #include "PixelGrid.h"
 #include "LEDCircuit.h"
 #include "Point.h"
+#include "LEDCore.h"
 
 namespace rgb {
 
-template <u16 COLUMNS, u16 ROWS, bool STAGGER = false>
+template <u16 COLUMNS, u16 ROWS, RgbFormat FORMAT, bool STAGGER = false>
 class LEDMatrix : public PixelGrid, public LEDCircuit {
 public:
   static constexpr auto N = COLUMNS * ROWS;
 
-  constexpr explicit LEDMatrix(pin_num pin, led_pixel_format_t format, u16 offset = 0):
-  pixels{}, leds{}, offset{offset}, format{format}, pin{pin}, reversed{false}, started{false}
+private:
+  Pixel pixels[N];
+  led_strip_handle_t leds;
+  int offset;
+  pin_num pin;
+  bool reversed;
+  bool started;
+
+public:
+  constexpr explicit LEDMatrix(pin_num pin, u16 offset = 0):
+  pixels{}, leds{}, offset{offset}, pin{pin}, reversed{false}, started{false}
   {
   }
 
@@ -29,12 +39,12 @@ public:
       return;
     }
     auto config = led_strip_config_t {
-      .strip_gpio_num = pin,   // The GPIO that connected to the LED strip's data line
-      .max_leds = N,          // The number of LEDs in the strip,
-      .led_pixel_format = format, // Pixel format of your LED strip
-      .led_model = LED_MODEL_WS2812,            // LED strip model
+      .strip_gpio_num = pin,
+      .max_leds = N,
+      .led_pixel_format = FORMAT.nativeFormat,
+      .led_model = LED_MODEL_WS2812,
       .flags {
-        .invert_out = false,                // whether to invert the output signal
+        .invert_out = false,
       }
     };
 
@@ -89,7 +99,7 @@ public:
     if (reversed) {
       for (u16 i = 0; i < N; ++i) {
         auto& c = pixels[mapPixelToLED(N - 1 - i)];
-        led_strip_set_pixel_rgbw(leds, i, FloatToByte(c.r), FloatToByte(c.g), FloatToByte(c.b), FloatToByte(c.w));
+        FORMAT.writer(leds, i, c);
       }
     }
     else {
@@ -97,14 +107,14 @@ public:
         for (u16 i = 0; i < N; ++i) {
           auto pixel = pixels[i];
           auto led = mapPixelToLED(i);
-          led_strip_set_pixel_rgbw(leds, zigzagToLinearIndex(led), FloatToByte(pixel.r), FloatToByte(pixel.g), FloatToByte(pixel.b), FloatToByte(pixel.w));
+          FORMAT.writer(leds, zigzagToLinearIndex(led), pixel);
         }
       }
       else {
         for (u16 i = 0; i < N; ++i) {
           auto pixel = pixels[i];
           auto led = mapPixelToLED(i);
-          led_strip_set_pixel_rgbw(leds, led, FloatToByte(pixel.r), FloatToByte(pixel.g), FloatToByte(pixel.b), FloatToByte(pixel.w));
+          FORMAT.writer(leds, led, pixel);
         }
       }
     }
@@ -145,18 +155,9 @@ public:
     *(getHead() + ((point.y * COLUMNS) + point.x)) = color;
   }
 
-  auto operator[](Point point) -> Color& override {
-    return *(getHead() + ((point.y * COLUMNS) + point.x));
+  auto operator[](uint column, uint row) -> Color& override {
+    return *(getHead() + ((row * COLUMNS) + column));
   }
-
-private:
-  Pixel pixels[N];
-  led_strip_handle_t leds;
-  int offset;
-  led_pixel_format_t format;
-  pin_num pin;
-  bool reversed;
-  bool started;
 };
 
 }

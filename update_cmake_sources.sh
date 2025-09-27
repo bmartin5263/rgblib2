@@ -2,6 +2,7 @@
 
 # Script to automatically update src/main/CMakeLists.txt with current source files
 # and include directories from the src directory
+# TODO - Make it possible to run from /scripts directory
 
 set -e
 

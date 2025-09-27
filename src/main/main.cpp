@@ -8,6 +8,11 @@
 #include <cinttypes>
 #include <expected>
 #include <string>
+#include <vector>
+#include <driver/gpio.h>
+#include <algorithm>
+#include <span>
+#include <cstring>
 #include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -15,6 +20,11 @@
 #include "esp_flash.h"
 #include "esp_system.h"
 #include "LEDStrip.h"
+#include "System.h"
+#include "driver/uart.h"
+#include "Assertions.h"
+
+using namespace rgb;
 
 // Base event concept (optional, for type safety)
 template<typename T>
@@ -22,60 +32,123 @@ concept Event = requires {
   typename T::event_tag; // Each event must have an event_tag type
 };
 
-std::expected<int, std::string> divide(int a, int b) {
-  if (b == 0) {
-    return std::unexpected("Division by zero");
-  }
-  return a / b;
+constexpr auto stickLen = 16;
+constexpr auto CAN_UART = UART_NUM_1;
+constexpr auto CAN_BUFFER_SIZE = 1024;
+constexpr auto CAN_RX_PIN = 18;
+constexpr auto CAN_TX_PIN = 17;
+
+static QueueHandle_t uart_queue;
+
+auto configureCanUart() {
+  auto uartConfig = uart_config_t {
+    .baud_rate = 115200,
+    .data_bits = UART_DATA_8_BITS,
+    .parity    = UART_PARITY_DISABLE,
+    .stop_bits = UART_STOP_BITS_1,
+    .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+    .rx_flow_ctrl_thresh = 0,
+    .source_clk = UART_SCLK_DEFAULT,
+    .flags = {
+      .allow_pd = 0,
+    }
+  };
+
+  // Install UART driver
+  ASSERT(uart_param_config(CAN_UART, &uartConfig) == ESP_OK, "UART configuration failed");
+  ASSERT(uart_set_pin(CAN_UART, CAN_TX_PIN, CAN_RX_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE) == ESP_OK, "CAN UART pin set failed");
+  ASSERT(uart_driver_install(CAN_UART, CAN_BUFFER_SIZE * 2, 0, 10, &uart_queue, 0) == ESP_OK, "Driver install failed");
+  INFO("UART initialized on TX:%d RX:%d", CAN_TX_PIN, CAN_RX_PIN);
 }
 
-auto printSystemInfo() {
-  esp_chip_info_t chip_info;
-  uint32_t flash_size;
-  esp_chip_info(&chip_info);
-  printf("This is %s chip with %d CPU core(s), %s%s%s%s, ",
-         CONFIG_IDF_TARGET,
-         chip_info.cores,
-         (chip_info.features & CHIP_FEATURE_WIFI_BGN) ? "WiFi/" : "",
-         (chip_info.features & CHIP_FEATURE_BT) ? "BT" : "",
-         (chip_info.features & CHIP_FEATURE_BLE) ? "BLE" : "",
-         (chip_info.features & CHIP_FEATURE_IEEE802154) ? ", 802.15.4 (Zigbee/Thread)" : "");
+/**
+ * This is esp32s3 chip with 2 CPU core(s), WiFi/BLE,
+ * silicon revision v0.2
+ * 2MB external flash
+ * Minimum free heap size: 382152 bytes
+ */
+extern "C" auto app_main() -> void {
+  // Configure
+  auto stick = LEDStrip<stickLen, rgb::format::GRBW>(9);
+  auto ledStrip = LEDStrip<30, rgb::format::GRB>(46);
+  auto debugLed = LEDStrip<1, rgb::format::GRB>(38);
 
-  unsigned major_rev = chip_info.revision / 100;
-  unsigned minor_rev = chip_info.revision % 100;
-  printf("silicon revision v%d.%d, ", major_rev, minor_rev);
-  if(esp_flash_get_size(NULL, &flash_size) != ESP_OK) {
-    printf("Get flash size failed");
-    return;
-  }
+  // Runtime
+  INFO("Started Application");
 
-  printf("%" PRIu32 "MB %s flash\n", flash_size / (uint32_t)(1024 * 1024),
-         (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
+  // Initialize
+  stick.start();
+  debugLed.start();
+  ledStrip.start();
 
-  printf("Minimum free heap size: %" PRIu32 " bytes\n", esp_get_minimum_free_heap_size());
-}
+  // Setup Input Pin
+  gpio_config_t io_conf = {
+    .pin_bit_mask = (1ULL << 6),
+    .mode = gpio_mode_t::GPIO_MODE_INPUT,
+    .pull_up_en = gpio_pullup_t::GPIO_PULLUP_ENABLE,  // Enable internal pull-up
+    .pull_down_en = gpio_pulldown_t::GPIO_PULLDOWN_DISABLE,
+    .intr_type = gpio_int_type_t::GPIO_INTR_DISABLE
+  };
+  gpio_config(&io_conf);
 
-extern "C" void app_main()
-{
-  printSystemInfo();
-  printf("Hello, World!");
+  configureCanUart();
+  vTaskDelay(100 / portTICK_PERIOD_MS);
 
-  auto leds = rgb::LEDStrip<40>(2, led_pixel_format_t::LED_PIXEL_FORMAT_GRB);
-  leds.start();
-  leds.reset();
-
+  // Main Loop
   while (true) {
-    leds.fill(rgb::Color::RED(.3f));
-    leds.display();
-    printf("Display!\n");
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
-  }
+    // Prepare LEDs
+    stick.reset();
+    debugLed.reset();
+    ledStrip.reset();
 
-  for (int i = 10; i >= 0; i--) {
-    printf("Restarting in %d seconds...\n", i);
+    // User update code
+    int level = gpio_get_level(gpio_num_t::GPIO_NUM_6);
+    INFO("Display! %i", level);
+    if (level > 0) {
+      debugLed.fill(Color::BLUE(.3f));
+    }
+    ledStrip.fill(Color::RED(.3f));
+
+    constexpr auto greenLen = 10;
+    constexpr auto yellowLen = 3;
+    constexpr auto redLen = 3;
+
+    static_assert(greenLen + yellowLen + redLen == stickLen);
+
+//    stick.fill(Color::GREEN(.1f), greenLen);
+//    stick.fill(Color::YELLOW(.1f), greenLen, yellowLen);
+//    stick.fill(Color::RED(.1f), greenLen + yellowLen, redLen);
+    stick.fill(Color::BLUE(.1f));
+
+    // Display LEDs
+    debugLed.display();
+    ledStrip.display();
+    stick.display();
+
+    uint8_t data[128];
+
+    uart_write_bytes(CAN_UART, "AT\r\n", 4);
+    vTaskDelay(pdMS_TO_TICKS(500));  // Wait for response
+    int len = uart_read_bytes(CAN_UART, data, sizeof(data)-1, pdMS_TO_TICKS(100));
+    if (len > 0) {
+      data[len] = '\0';  // Null terminate
+      INFO("Response (\\r\\n): %s", (char*)data);
+    } else {
+      INFO("No response with \\r\\n");
+    }
+    uart_flush_input(CAN_UART);  // Clear buffer
+
+    uart_write_bytes(CAN_UART, "AT\n", 4);
+    vTaskDelay(pdMS_TO_TICKS(500));  // Wait for response
+    len = uart_read_bytes(CAN_UART, data, sizeof(data)-1, pdMS_TO_TICKS(100));
+    if (len > 0) {
+      data[len] = '\0';  // Null terminate
+      INFO("Response (\\n): %s", (char*)data);
+    } else {
+      INFO("No response with \\n");
+    }
+    uart_flush_input(CAN_UART);  // Clear buffer
+
     vTaskDelay(1000 / portTICK_PERIOD_MS);
   }
-  printf("Restarting now.\n");
-  fflush(stdout);
-  esp_restart();
 }

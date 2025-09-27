@@ -16,25 +16,19 @@
 
 namespace rgb::log {
 
-auto init(u32 baud = 9600) -> void;
 auto printHeader(const char* level, const char* function) -> void;
 
 #define ERROR(format, ...) do { \
   rgb::log::printHeader("ERROR", __PRETTY_FUNCTION__); \
   printf(format, ##__VA_ARGS__); \
-  Serial.println();            \
-} while(false)
-
-#define PRINTF(format, ...) do { \
-  printf(format, ##__VA_ARGS__); \
-  Serial.println();            \
+  printf("\n");            \
 } while(false)
 
 #if RGB_LOG_LEVEL > 0
 #define INFO(format, ...) do { \
   rgb::log::printHeader("INFO", __PRETTY_FUNCTION__);  \
   printf(format, ##__VA_ARGS__);                \
-  Serial.println();            \
+  printf("\n");            \
 } while(false)
 #else
 #define INFO(format, ...)
@@ -45,7 +39,7 @@ auto printHeader(const char* level, const char* function) -> void;
 #define TRACE(format, ...) do { \
   rgb::log::printHeader("TRACE", __PRETTY_FUNCTION__); \
   printf(format, ##__VA_ARGS__); \
-  Serial.println();            \
+  printf("\n");            \
 } while(false)
 #else
 #define TRACE(format, ...)

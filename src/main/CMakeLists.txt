@@ -27,16 +27,20 @@ idf_component_register(
         "../core/Util.h"
 
         "../led/LEDCircuit.h"
+        "../led/LEDCore.h"
         "../led/LEDMatrix.h"
         "../led/LEDMatrix2.h"
         "../led/LEDStrip.h"
         "../led/MatrixStrategy.h"
-        "../led/Pixel.h"
-        "../led/PixelGrid.h"
-        "../led/PixelList.cpp"
-        "../led/PixelList.h"
-        "../led/PixelSlice.cpp"
-        "../led/PixelSlice.h"
+
+        "../pixel/Pixel.h"
+        "../pixel/PixelGrid.h"
+        "../pixel/PixelList.cpp"
+        "../pixel/PixelList.h"
+        "../pixel/PixelSlice.cpp"
+        "../pixel/PixelSlice.h"
+
+        "../system/System.h"
 
         "../time/Stopwatch.cpp"
         "../time/Stopwatch.h"
@@ -52,5 +56,11 @@ idf_component_register(
         "../effect"
         "../event"
         "../led"
+        "../pixel"
+        "../system"
         "../time"
+)
+
+target_compile_definitions(${COMPONENT_LIB} PUBLIC
+        RGB_DEBUG
 )
