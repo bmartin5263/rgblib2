@@ -5,7 +5,6 @@
 #ifndef RGBLIB_TYPES_H
 #define RGBLIB_TYPES_H
 
-#include <optional>
 #include <cstdint>
 #include <limits>
 

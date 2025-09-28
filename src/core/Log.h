@@ -18,6 +18,25 @@ namespace rgb::log {
 
 auto printHeader(const char* level, const char* function) -> void;
 
+template<typename Impl>
+class BaseLogging {
+public:
+  constexpr auto Start() {
+    impl.start();
+  }
+
+  constexpr auto Stop() {
+    impl.stop();
+  }
+
+private:
+  Impl impl;
+};
+
+// Opaque type in header - users can't see the implementation
+class LoggingImpl;
+using Logging = BaseLogging<LoggingImpl>;
+
 #define ERROR(format, ...) do { \
   rgb::log::printHeader("ERROR", __PRETTY_FUNCTION__); \
   printf(format, ##__VA_ARGS__); \

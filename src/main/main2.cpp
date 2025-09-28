@@ -1,4 +1,16 @@
 #include <LovyanGFX.hpp>
+#include <cmath>
+#include <cstdlib>
+#include <ctime>
+
+// Helper functions
+int random(int min, int max) {
+  return min + (rand() % (max - min));
+}
+
+long map(long x, long in_min, long in_max, long out_min, long out_max) {
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
 
 // Define custom LGFX class for GC9A01
 class LGFX : public lgfx::LGFX_Device
@@ -23,8 +35,8 @@ public:
       cfg.dma_channel = SPI_DMA_CH_AUTO;
 
       // Pin configuration
-      cfg.pin_sclk = 18;  // SCL
-      cfg.pin_mosi = 23;  // SDA
+      cfg.pin_sclk = 20;  // SCL
+      cfg.pin_mosi = 36;  // SDA
       cfg.pin_miso = -1;  // Not used
       cfg.pin_dc = 2;     // DC
 
@@ -76,174 +88,179 @@ public:
 
 // Create display instance
 static LGFX lcd;
+static LGFX_Sprite canvas(&lcd);       // オフスクリーン描画用バッファ
+static LGFX_Sprite clockbase(&canvas); // 時計の文字盤パーツ
+static LGFX_Sprite needle1(&canvas);   // 長針・短針パーツ
+static LGFX_Sprite shadow1(&canvas);   // 長針・短針の影パーツ
+static LGFX_Sprite needle2(&canvas);   // 秒針パーツ
+static LGFX_Sprite shadow2(&canvas);   // 秒針の影パーツ
 
-// Demo function - draw some basic shapes
-void draw_demo()
-{
-  lcd.fillScreen(TFT_BLACK);
-  lcd.setTextSize(2);
-  lcd.setTextColor(TFT_WHITE);
-  lcd.drawString("GC9A01 Demo", 40, 10);
+static constexpr uint64_t oneday = 86400000; // 1日 = 1000msec x 60sec x 60min x 24hour = 86400000
+static uint64_t count = rand() % oneday;    // 現在時刻 (ミリ秒カウンタ)
+static int32_t width = 239;             // 時計の縦横画像サイズ
+static int32_t halfwidth = width >> 1;  // 時計盤の中心座標
+static auto transpalette = 0;           // 透過色パレット番号
+static float zoom;                      // 表示倍率
 
-  // Draw some colorful shapes
-  lcd.fillCircle(120, 120, 80, TFT_RED);
-  lcd.fillCircle(120, 120, 60, TFT_GREEN);
-  lcd.fillCircle(120, 120, 40, TFT_BLUE);
-  lcd.fillCircle(120, 120, 20, TFT_YELLOW);
+#ifdef min
+#undef min
+#endif
 
-  vTaskDelay(2000 / portTICK_PERIOD_MS);
+void update7Seg(int32_t hour, int32_t min)
+{ // 時計盤のデジタル表示部の描画
+  int x = clockbase.getPivotX() - 69;
+  int y = clockbase.getPivotY();
+  clockbase.setCursor(x, y);
+  clockbase.setTextColor(5);  // 消去色で 88:88 を描画する
+  clockbase.print("88:88");
+  clockbase.setCursor(x, y);
+  clockbase.setTextColor(12); // 表示色で時:分を描画する
+  clockbase.printf("%02lu:%02lu", hour, min);
 }
 
-// Draw animated circles
-void animate_circles()
+void drawDot(int pos, int palette)
 {
-  lcd.fillScreen(TFT_BLACK);
-  lcd.setTextColor(TFT_WHITE);
-  lcd.drawString("Circles", 80, 10);
-
-  for (int i = 0; i < 5; i++) {
-    for (int r = 10; r < 120; r += 10) {
-      lcd.drawCircle(120, 120, r, random(0xFFFF));
-      vTaskDelay(50 / portTICK_PERIOD_MS);
-    }
-    vTaskDelay(500 / portTICK_PERIOD_MS);
-    lcd.fillScreen(TFT_BLACK);
-    lcd.drawString("Circles", 80, 10);
-  }
+  bool flg = 0 == (pos % 5);      // ５目盛り毎フラグ
+  float rad = pos * 6 * - 0.0174532925;              // 時計盤外周の目盛り座標を求める
+  float cosy = - cos(rad) * (halfwidth * 10 / 11);
+  float sinx = - sin(rad) * (halfwidth * 10 / 11);
+  canvas.fillCircle(halfwidth + sinx, halfwidth + cosy, flg * 3 + 1, palette);
 }
 
-// Draw rectangles
-void draw_rectangles()
-{
-  lcd.fillScreen(TFT_BLACK);
-  lcd.setTextColor(TFT_YELLOW);
-  lcd.drawString("Rectangles", 60, 10);
-
-  for (int i = 0; i < 20; i++) {
-    int x = random(0, 200);
-    int y = random(30, 200);
-    int w = random(20, 60);
-    int h = random(20, 60);
-    uint16_t color = random(0xFFFF);
-
-    lcd.fillRect(x, y, w, h, color);
-    vTaskDelay(200 / portTICK_PERIOD_MS);
+void drawClock(uint64_t time)
+{ // 時計の描画
+  static int32_t p_min = -1;
+  int32_t sec = time / 1000;
+  int32_t min = sec / 60;
+  if (p_min != min) { // 分の値が変化していれば時計盤のデジタル表示部分を更新
+    p_min = min;
+    update7Seg(min / 60, min % 60);
   }
+  clockbase.pushSprite(0, 0);  // 描画用バッファに時計盤の画像を上書き
 
-  vTaskDelay(1000 / portTICK_PERIOD_MS);
-}
+  drawDot(sec % 60, 14);
+  drawDot(min % 60, 15);
+  drawDot(((min/60)*5)%60, 15);
 
-// Draw lines
-void draw_lines()
-{
-  lcd.fillScreen(TFT_BLACK);
-  lcd.setTextColor(TFT_CYAN);
-  lcd.drawString("Lines", 90, 10);
+  float fhour = (float)time / 120000;  // 短針の角度
+  float fmin  = (float)time /  10000;  // 長針の角度
+  float fsec  = (float)time*6 / 1000;  // 秒針の角度
+  int px = canvas.getPivotX();
+  int py = canvas.getPivotY();
+  shadow1.pushRotateZoom(px+2, py+2, fhour, 1.0, 0.7, transpalette); // 針の影を右下方向にずらして描画する
+  shadow1.pushRotateZoom(px+3, py+3, fmin , 1.0, 1.0, transpalette);
+  shadow2.pushRotateZoom(px+4, py+4, fsec , 1.0, 1.0, transpalette);
+  needle1.pushRotateZoom(            fhour, 1.0, 0.7, transpalette); // 針を描画する
+  needle1.pushRotateZoom(            fmin , 1.0, 1.0, transpalette);
+  needle2.pushRotateZoom(            fsec , 1.0, 1.0, transpalette);
 
-  // Radial lines from center
-  for (int angle = 0; angle < 360; angle += 10) {
-    float rad = angle * PI / 180.0;
-    int x = 120 + (int)(100 * cos(rad));
-    int y = 120 + (int)(100 * sin(rad));
-
-    lcd.drawLine(120, 120, x, y, random(0xFFFF));
-    vTaskDelay(50 / portTICK_PERIOD_MS);
-  }
-
-  vTaskDelay(1000 / portTICK_PERIOD_MS);
-}
-
-// Draw triangles
-void draw_triangles()
-{
-  lcd.fillScreen(TFT_BLACK);
-  lcd.setTextColor(TFT_MAGENTA);
-  lcd.drawString("Triangles", 70, 10);
-
-  for (int i = 0; i < 15; i++) {
-    int x0 = random(0, 240);
-    int y0 = random(30, 240);
-    int x1 = random(0, 240);
-    int y1 = random(30, 240);
-    int x2 = random(0, 240);
-    int y2 = random(30, 240);
-
-    lcd.fillTriangle(x0, y0, x1, y1, x2, y2, random(0xFFFF));
-    vTaskDelay(300 / portTICK_PERIOD_MS);
-  }
-
-  vTaskDelay(1000 / portTICK_PERIOD_MS);
-}
-
-// Rainbow gradient
-void draw_gradient()
-{
-  lcd.fillScreen(TFT_BLACK);
-  lcd.setTextColor(TFT_WHITE);
-  lcd.drawString("Gradient", 75, 10);
-
-  for (int y = 30; y < 240; y++) {
-    uint16_t color = lcd.color565(
-      map(y, 30, 240, 255, 0),
-      map(y, 30, 140, 0, 255),
-      map(y, 140, 240, 0, 255)
-    );
-    lcd.drawFastHLine(0, y, 240, color);
-  }
-
-  vTaskDelay(2000 / portTICK_PERIOD_MS);
-}
-
-// Bouncing ball animation
-void bouncing_ball()
-{
-  lcd.fillScreen(TFT_BLACK);
-  lcd.setTextColor(TFT_WHITE);
-  lcd.drawString("Bouncing Ball", 50, 10);
-
-  int x = 120, y = 120;
-  int dx = 3, dy = 2;
-  int radius = 15;
-
-  for (int i = 0; i < 200; i++) {
-    // Clear previous ball
-    lcd.fillCircle(x, y, radius, TFT_BLACK);
-
-    // Update position
-    x += dx;
-    y += dy;
-
-    // Bounce off edges
-    if (x - radius < 0 || x + radius > 240) dx = -dx;
-    if (y - radius < 30 || y + radius > 240) dy = -dy;
-
-    // Draw new ball
-    lcd.fillCircle(x, y, radius, TFT_RED);
-    lcd.drawCircle(x, y, radius, TFT_WHITE);
-
-    vTaskDelay(20 / portTICK_PERIOD_MS);
-  }
-
-  vTaskDelay(1000 / portTICK_PERIOD_MS);
+  canvas.pushRotateZoom(0, zoom, zoom, transpalette);    // 完了した時計盤をLCDに描画する
+  lcd.display();
 }
 
 extern "C" void app_main(void)
 {
-  // Initialize the display
   lcd.init();
-  lcd.setRotation(0);
-  lcd.setBrightness(255);
 
-  printf("LovyanGFX GC9A01 Demo Starting...\n");
+  zoom = (float)(std::min(lcd.width(), lcd.height())) / width; // 表示が画面にフィットするよう倍率を調整
 
-  // Run demo loop
-  while (1) {
-    draw_demo();
-    animate_circles();
-    draw_rectangles();
-    draw_lines();
-    draw_triangles();
-    draw_gradient();
-    bouncing_ball();
+  lcd.setPivot(lcd.width() >> 1, lcd.height() >> 1); // 時計描画時の中心を画面中心に合わせる
+
+  canvas.setColorDepth(lgfx::palette_4bit);  // 各部品を４ビットパレットモードで準備する
+  clockbase.setColorDepth(lgfx::palette_4bit);
+  needle1.setColorDepth(lgfx::palette_4bit);
+  shadow1.setColorDepth(lgfx::palette_4bit);
+  needle2.setColorDepth(lgfx::palette_4bit);
+  shadow2.setColorDepth(lgfx::palette_4bit);
+// パレットの初期色はグレースケールのグラデーションとなっており、
+// 0番が黒(0,0,0)、15番が白(255,255,255)
+// 1番～14番は黒から白へ段階的に明るさが変化している
+//
+// パレットを使う場合、描画関数は色の代わりに0～15のパレット番号を指定する
+
+  canvas.createSprite(width, width); // メモリ確保
+  clockbase.createSprite(width, width);
+  needle1.createSprite(9, 119);
+  shadow1.createSprite(9, 119);
+  needle2.createSprite(3, 119);
+  shadow2.createSprite(3, 119);
+
+  canvas.fillScreen(transpalette); // 透過色で背景を塗り潰す (create直後は0埋めされているので省略可能)
+  clockbase.fillScreen(transpalette);
+  needle1.fillScreen(transpalette);
+  shadow1.fillScreen(transpalette);
+
+  clockbase.setTextFont(4);           // フォント種類を変更(時計盤の文字用)
+  clockbase.setTextDatum(lgfx::middle_center);
+  clockbase.fillCircle(halfwidth, halfwidth, halfwidth    ,  6); // 時計盤の背景の円を塗る
+  clockbase.drawCircle(halfwidth, halfwidth, halfwidth - 1, 15);
+  for (int i = 1; i <= 60; ++i) {
+    float rad = i * 6 * - 0.0174532925;              // 時計盤外周の目盛り座標を求める
+    float cosy = - cos(rad) * (halfwidth * 10 / 11);
+    float sinx = - sin(rad) * (halfwidth * 10 / 11);
+    bool flg = 0 == (i % 5);      // ５目盛り毎フラグ
+    clockbase.fillCircle(halfwidth + sinx + 1, halfwidth + cosy + 1, flg * 3 + 1,  4); // 目盛りを描画
+    clockbase.fillCircle(halfwidth + sinx    , halfwidth + cosy    , flg * 3 + 1, 12);
+    if (flg) {                    // 文字描画
+      cosy = - cos(rad) * (halfwidth * 10 / 13);
+      sinx = - sin(rad) * (halfwidth * 10 / 13);
+      clockbase.setTextColor(1);
+      clockbase.drawNumber(i/5, halfwidth + sinx + 1, halfwidth + cosy + 4);
+      clockbase.setTextColor(15);
+      clockbase.drawNumber(i/5, halfwidth + sinx    , halfwidth + cosy + 3);
+    }
+  }
+  clockbase.setTextFont(7);
+
+  needle1.setPivot(4, 100);  // 針パーツの回転中心座標を設定する
+  shadow1.setPivot(4, 100);
+  needle2.setPivot(1, 100);
+  shadow2.setPivot(1, 100);
+
+  for (int i = 6; i >= 0; --i) {  // 針パーツの画像を作成する
+    needle1.fillTriangle(4, - 16 - (i<<1), 8, needle1.height() - (i<<1), 0, needle1.height() - (i<<1), 15 - i);
+    shadow1.fillTriangle(4, - 16 - (i<<1), 8, shadow1.height() - (i<<1), 0, shadow1.height() - (i<<1),  1 + i);
+  }
+  for (int i = 0; i < 7; ++i) {
+    needle1.fillTriangle(4, 16 + (i<<1), 8, needle1.height() + 32 + (i<<1), 0, needle1.height() + 32 + (i<<1), 15 - i);
+    shadow1.fillTriangle(4, 16 + (i<<1), 8, shadow1.height() + 32 + (i<<1), 0, shadow1.height() + 32 + (i<<1),  1 + i);
+  }
+  needle1.fillTriangle(4, 32, 8, needle1.height() + 64, 0, needle1.height() + 64, 0);
+  shadow1.fillTriangle(4, 32, 8, shadow1.height() + 64, 0, shadow1.height() + 64, 0);
+  needle1.fillRect(0, 117, 9, 2, 15);
+  shadow1.fillRect(0, 117, 9, 2,  1);
+  needle1.drawFastHLine(1, 117, 7, 12);
+  shadow1.drawFastHLine(1, 117, 7,  4);
+
+  needle1.fillCircle(4, 100, 4, 15);
+  shadow1.fillCircle(4, 100, 4,  1);
+  needle1.drawCircle(4, 100, 4, 14);
+
+  needle2.fillScreen(9);
+  shadow2.fillScreen(3);
+  needle2.drawFastVLine(1, 0, 119, 8);
+  shadow2.drawFastVLine(1, 0, 119, 1);
+  needle2.fillRect(0, 99, 3, 3, 8);
+
+  lcd.startWrite();
+
+//  shadow1.pushSprite(&lcd,  0, 0); // デバッグ用、パーツを直接LCDに描画する
+//  needle1.pushSprite(&lcd, 10, 0);
+//  shadow2.pushSprite(&lcd, 20, 0);
+//  needle2.pushSprite(&lcd, 25, 0);
+
+  while (true) {
+    static uint32_t p_milli = 0;
+    uint32_t milli = lgfx::millis() % 1000;
+    if (p_milli > milli) count += 1000 + (milli - p_milli);
+    else                 count +=        (milli - p_milli);
+    p_milli = milli;
+
+    int32_t tmp = (count % 1000) >> 3;
+    canvas.setPaletteColor(8, 255 - (tmp>>1), 255 - (tmp>>1), 200 - tmp); // 秒針の描画色を変化させる
+//count += 60000;
+    if ( count > oneday ) { count -= oneday; }
+    drawClock(count);
+    vTaskDelay(1 / portTICK_PERIOD_MS);
   }
 }

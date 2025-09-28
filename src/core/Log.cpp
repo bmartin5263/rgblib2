@@ -23,4 +23,9 @@ auto printHeader(const char* level, const char* function) -> void {
   printf("%02llu:%02llu:%02llu.%03llu [%-5s] [%-60s] : ", hours, minutes, seconds, milliseconds, level, function);
 }
 
+class LoggingImpl {
+public:
+
+};
+
 }

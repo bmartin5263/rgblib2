@@ -1,6 +1,6 @@
 idf_component_register(
         REQUIRES
-        spi_flash led_strip esp_timer driver
+        spi_flash led_strip esp_timer driver LovyanGFX
 
         SRCS
         "main.cpp"
