@@ -8,6 +8,7 @@
 #include "Iterable.h"
 #include "Func.h"
 #include "TimerHandle.h"
+#include "Types.h"
 
 namespace rgb {
 

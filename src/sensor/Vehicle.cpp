@@ -40,7 +40,7 @@ auto Vehicle::connect(pin_num rx, pin_num tx) -> bool {
   }
 
   INFO("Vehicle ready");
-  digitalWrite(rgb::config::LED_VEHICLE_CONNECTED, LOW);
+//  digitalWrite(rgb::config::LED_VEHICLE_CONNECTED, LOW); TODO
   mConnected = true;
   mLastResponse = Clock::Now();
 
@@ -50,7 +50,7 @@ auto Vehicle::connect(pin_num rx, pin_num tx) -> bool {
 auto Vehicle::disconnect() -> void {
   auto lock = std::unique_lock { mu };
   obdHandle.reset({});
-  digitalWrite(rgb::config::LED_VEHICLE_CONNECTED, HIGH);
+//  digitalWrite(rgb::config::LED_VEHICLE_CONNECTED, HIGH); TODO
   mConnected = false;
 }
 
@@ -100,10 +100,10 @@ auto Vehicle::setLowPowerMode(bool value) -> void {
   auto lock = std::unique_lock { mu };
   mLowPowerMode = value;
   if (mLowPowerMode) {
-    digitalWrite(rgb::config::LED_VEHICLE_CONNECTED, HIGH);
+//    digitalWrite(rgb::config::LED_VEHICLE_CONNECTED, HIGH); TODO
   }
   else {
-    digitalWrite(rgb::config::LED_VEHICLE_CONNECTED, LOW);
+//    digitalWrite(rgb::config::LED_VEHICLE_CONNECTED, LOW); TODO
   }
 }
 

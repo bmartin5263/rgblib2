@@ -4,7 +4,12 @@ idf_component_register(
 
         SRCS
         "main.cpp"
+        "main2.cpp"
 
+        "../core/App.cpp"
+        "../core/App.h"
+        "../core/AppBuilder.cpp"
+        "../core/AppBuilder.h"
         "../core/Assertions.h"
         "../core/Brightness.cpp"
         "../core/Brightness.h"
@@ -18,13 +23,39 @@ idf_component_register(
         "../core/Enumerate.h"
         "../core/Every.h"
         "../core/Func.h"
+        "../core/GPIO.h"
         "../core/Handle.h"
         "../core/Iterable.h"
         "../core/Log.cpp"
         "../core/Log.h"
+        "../core/NullScene.cpp"
+        "../core/NullScene.h"
+        "../core/Pin.cpp"
+        "../core/Pin.h"
         "../core/Point.h"
+        "../core/Scene.h"
+        "../core/Trigger.h"
         "../core/Types.h"
         "../core/Util.h"
+        "../core/priv/GPIOBase.h"
+        "../core/priv/GPIOESP32.h"
+        "../core/priv/GPIOImpl.h"
+        "../core/priv/LoggingSystem.h"
+        "../core/priv/LoggingSystemBase.cpp"
+        "../core/priv/LoggingSystemBase.h"
+        "../core/threading/CircularCommandQueue.cpp"
+        "../core/threading/CircularCommandQueue.h"
+        "../core/threading/CircularIndex.cpp"
+        "../core/threading/CircularIndex.h"
+        "../core/threading/CircularLog.h"
+
+        "../effect/ChasingEffect.cpp"
+        "../effect/ChasingEffect.h"
+        "../effect/FillEffect.cpp"
+        "../effect/FillEffect.h"
+        "../effect/Length.h"
+        "../effect/TrailingEffect.cpp"
+        "../effect/TrailingEffect.h"
 
         "../led/LEDCircuit.h"
         "../led/LEDCore.h"
@@ -40,6 +71,19 @@ idf_component_register(
         "../pixel/PixelSlice.cpp"
         "../pixel/PixelSlice.h"
 
+        "../sensor/Button.cpp"
+        "../sensor/Button.h"
+        "../sensor/ButtonState.h"
+        "../sensor/IRButton.cpp"
+        "../sensor/IRButton.h"
+        "../sensor/IRButtonType.h"
+        "../sensor/OBD.cpp"
+        "../sensor/OBD.h"
+        "../sensor/PushButton.cpp"
+        "../sensor/PushButton.h"
+        "../sensor/Vehicle.cpp"
+        "../sensor/Vehicle.h"
+
         "../system/System.h"
 
         "../time/Stopwatch.cpp"
@@ -53,14 +97,24 @@ idf_component_register(
 
         INCLUDE_DIRS
         "../core"
+        "../core/debug"
+        "../core/threading"
         "../effect"
         "../event"
+        "../gfx"
         "../led"
         "../pixel"
+        "../sensor"
         "../system"
         "../time"
+
+        PRIV_INCLUDE_DIRS
+        "../core/priv"
 )
 
 target_compile_definitions(${COMPONENT_LIB} PUBLIC
         RGB_DEBUG
+)
+target_compile_options(${COMPONENT_LIB} PRIVATE
+        -Werror=switch
 )

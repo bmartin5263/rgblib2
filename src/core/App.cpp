@@ -2,13 +2,14 @@
 // Created by Brandon on 1/5/25.
 //
 
+#include <esp_sleep.h>
 #include "App.h"
 #include "AppBuilder.h"
 #include "Scene.h"
 #include "Clock.h"
 #include "Assertions.h"
-//#include "OTASupport.h"
-//#include "WebServer.h"
+//#include "OTASupport.h" TODO
+//#include "WebServer.h" TODO
 #include "Timer.h"
 #include "LEDCircuit.h"
 #include "NullScene.h"
@@ -22,12 +23,12 @@ auto App::Configure(const AppBuilder& appBuilder) -> void {
 auto App::start() -> void {
   ASSERT(!started, "App has already started");
 
-  pinMode(LED_BLUE, OUTPUT);
-  pinMode(LED_GREEN, OUTPUT);
-  pinMode(LED_RED, OUTPUT);
-  digitalWrite(LED_BLUE, HIGH);
-  digitalWrite(LED_GREEN, HIGH);
-  digitalWrite(LED_RED, HIGH);
+//  pinMode(LED_BLUE, OUTPUT);
+//  pinMode(LED_GREEN, OUTPUT);
+//  pinMode(LED_RED, OUTPUT);
+//  digitalWrite(LED_BLUE, HIGH);
+//  digitalWrite(LED_GREEN, HIGH);
+//  digitalWrite(LED_RED, HIGH);
 
   Clock::Start(300);
 //  if constexpr (Wifi::Enabled()) {
@@ -91,12 +92,12 @@ auto App::update() -> void {
   for (auto& sensor : sensors) {
     sensor();
   }
-  if constexpr (Wifi::Enabled()) {
-    Wifi::Update();
-  }
-  if constexpr (OTASupport::Enabled()) {
-    OTASupport::Update();
-  }
+//  if constexpr (Wifi::Enabled()) { TODO
+//    Wifi::Update();
+//  }
+//  if constexpr (OTASupport::Enabled()) { TODO
+//    OTASupport::Update();
+//  }
 
   Timer::ProcessTimers();
   checkForSceneSwitch();
@@ -194,9 +195,9 @@ auto App::goToSleep() -> void {
   this->scene = &NullScene::Instance();
   this->leds.forEach([](auto led){ led->reset(); led->display(); } );
 
-  digitalWrite(rgb::config::LED_DROPPING_FRAMES, HIGH);
-  digitalWrite(rgb::config::LED_VEHICLE_CONNECTED, HIGH);
-  digitalWrite(rgb::config::LED_OTA_CONNECTED, HIGH);
+//  digitalWrite(rgb::config::LED_DROPPING_FRAMES, HIGH); TODO
+//  digitalWrite(rgb::config::LED_VEHICLE_CONNECTED, HIGH); TODO
+//  digitalWrite(rgb::config::LED_OTA_CONNECTED, HIGH); TODO
 
   Clock::StopTick();
 

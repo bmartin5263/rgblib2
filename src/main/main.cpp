@@ -5,24 +5,18 @@
  */
 
 #include <cstdio>
-#include <cinttypes>
-#include <expected>
-#include <string>
-#include <vector>
 #include <driver/gpio.h>
-#include <algorithm>
-#include <span>
-#include <cstring>
 #include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_chip_info.h"
-#include "esp_flash.h"
 #include "esp_system.h"
 #include "LEDStrip.h"
-#include "System.h"
 #include "driver/uart.h"
 #include "Assertions.h"
+#include "Log.h"
+#include "esp_log.h"
+#include "GPIO.h"
 
 using namespace rgb;
 
@@ -68,13 +62,12 @@ auto configureCanUart() {
  * Minimum free heap size: 382152 bytes
  */
 extern "C" auto app_main() -> void {
-  // Configure
-  auto stick = LEDStrip<stickLen, rgb::format::GRBW>(9);
-  auto ledStrip = LEDStrip<30, rgb::format::GRB>(46);
-  auto debugLed = LEDStrip<1, rgb::format::GRB>(38);
+  INFO("Starting Application");
 
-  // Runtime
-  INFO("Started Application");
+  // Configure
+  auto stick = LEDStrip<stickLen, rgb::format::GRBW>(pin_num{9});
+  auto ledStrip = LEDStrip<40, rgb::format::GRB>(pin_num{46});
+  auto debugLed = LEDStrip<1, rgb::format::GRB>(pin_num{38});
 
   // Initialize
   stick.start();
@@ -91,10 +84,14 @@ extern "C" auto app_main() -> void {
   };
   gpio_config(&io_conf);
 
+  GPIO::ActivatePin(PinNumber{6}, PinMode::WRITE);
+
+
   configureCanUart();
   vTaskDelay(100 / portTICK_PERIOD_MS);
 
   // Main Loop
+  INFO("Beginning Main Loop");
   while (true) {
     // Prepare LEDs
     stick.reset();
@@ -109,46 +106,46 @@ extern "C" auto app_main() -> void {
     }
     ledStrip.fill(Color::RED(.3f));
 
-    constexpr auto greenLen = 10;
+    constexpr auto greenLen = 11;
     constexpr auto yellowLen = 3;
-    constexpr auto redLen = 3;
+    constexpr auto redLen = 2;
 
     static_assert(greenLen + yellowLen + redLen == stickLen);
 
-//    stick.fill(Color::GREEN(.1f), greenLen);
-//    stick.fill(Color::YELLOW(.1f), greenLen, yellowLen);
-//    stick.fill(Color::RED(.1f), greenLen + yellowLen, redLen);
-    stick.fill(Color::BLUE(.1f));
+    stick.fill(Color::GREEN(.02f), greenLen);
+    stick.fill(Color::YELLOW(.02f), greenLen, yellowLen);
+    stick.fill(Color::RED(.02f), greenLen + yellowLen, redLen);
+    stick.fill(Color(.3f, 0.0f, 1.0f) * .02f);
 
     // Display LEDs
     debugLed.display();
     ledStrip.display();
     stick.display();
 
-    uint8_t data[128];
+//    uint8_t data[128];
+//
+//    uart_write_bytes(CAN_UART, "AT\r\n", 4);
+//    vTaskDelay(pdMS_TO_TICKS(500));  // Wait for response
+//    int len = uart_read_bytes(CAN_UART, data, sizeof(data)-1, pdMS_TO_TICKS(100));
+//    if (len > 0) {
+//      data[len] = '\0';  // Null terminate
+//      INFO("Response (\\r\\n): %s", (char*)data);
+//    } else {
+//      INFO("No response with \\r\\n");
+//    }
+//    uart_flush_input(CAN_UART);  // Clear buffer
+//
+//    uart_write_bytes(CAN_UART, "AT\n", 4);
+//    vTaskDelay(pdMS_TO_TICKS(500));  // Wait for response
+//    len = uart_read_bytes(CAN_UART, data, sizeof(data)-1, pdMS_TO_TICKS(100));
+//    if (len > 0) {
+//      data[len] = '\0';  // Null terminate
+//      INFO("Response (\\n): %s", (char*)data);
+//    } else {
+//      INFO("No response with \\n");
+//    }
+//    uart_flush_input(CAN_UART);  // Clear buffer
 
-    uart_write_bytes(CAN_UART, "AT\r\n", 4);
-    vTaskDelay(pdMS_TO_TICKS(500));  // Wait for response
-    int len = uart_read_bytes(CAN_UART, data, sizeof(data)-1, pdMS_TO_TICKS(100));
-    if (len > 0) {
-      data[len] = '\0';  // Null terminate
-      INFO("Response (\\r\\n): %s", (char*)data);
-    } else {
-      INFO("No response with \\r\\n");
-    }
-    uart_flush_input(CAN_UART);  // Clear buffer
-
-    uart_write_bytes(CAN_UART, "AT\n", 4);
-    vTaskDelay(pdMS_TO_TICKS(500));  // Wait for response
-    len = uart_read_bytes(CAN_UART, data, sizeof(data)-1, pdMS_TO_TICKS(100));
-    if (len > 0) {
-      data[len] = '\0';  // Null terminate
-      INFO("Response (\\n): %s", (char*)data);
-    } else {
-      INFO("No response with \\n");
-    }
-    uart_flush_input(CAN_UART);  // Clear buffer
-
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    vTaskDelay(5 / portTICK_PERIOD_MS);
   }
 }

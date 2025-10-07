@@ -25,7 +25,7 @@ public:
 
   static auto ProcessTimers() -> void;
   static auto Cancel(TimerNode* node) -> void;
-  static auto Count() -> decltype(TIMER_COUNT);
+  static auto Count();
   static auto Instance() -> Timer&;
 
 private:
@@ -44,7 +44,7 @@ private:
   auto enqueueForAdding(TimerNode* node) -> void;
   auto processAdditions() -> void;
   auto reclaimNodes() -> void;
-  auto count() -> decltype(TIMER_COUNT);
+  auto count();
   auto recycle(TimerNode* timer) -> void;
   auto executeRegularTimer(TimerNode* timer, Timestamp now) -> bool;
   auto executeContinuousTimer(TimerNode* timer, Timestamp now) -> bool;

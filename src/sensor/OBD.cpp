@@ -22,6 +22,8 @@ void ESP32UART::begin(unsigned long baud_rate, uint32_t config, int8_t rxPin, in
         .stop_bits = UART_STOP_BITS_1,
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
         .rx_flow_ctrl_thresh = 122,
+        .source_clk = UART_SCLK_DEFAULT,
+        .flags = {}
     };
 
     // Configure UART parameters

@@ -218,12 +218,8 @@ auto Timer::Instance() -> Timer& {
   return timer;
 }
 
-auto Timer::Count() -> decltype(TIMER_COUNT) {
-  return Instance().count();
-}
-
-auto Timer::count() -> decltype(TIMER_COUNT) {
-  auto num = static_cast<decltype(TIMER_COUNT)>(0);
+auto Timer::count() {
+  auto num = 0;
   auto current = activeHead;
   while (current != nullptr) {
     if (!current->cancelled) {
@@ -232,6 +228,10 @@ auto Timer::count() -> decltype(TIMER_COUNT) {
     current = current->next;
   }
   return num;
+}
+
+auto Timer::Count() {
+  return Instance().count();
 }
 
 auto Timer::recycle(TimerNode* timer) -> void {

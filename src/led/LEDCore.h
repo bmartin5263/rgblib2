@@ -8,10 +8,10 @@
 #include <led_strip_types.h>
 #include <functional>
 
+namespace rgb {
+
 using NativePixelFormat = led_pixel_format_t;
 using NativeLEDHandle = led_strip_handle_t;
-
-namespace rgb {
 
 struct RgbFormat {
   using WriteFunction = void(*)(NativeLEDHandle, uint32_t, const Pixel&);

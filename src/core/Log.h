@@ -6,59 +6,50 @@
 #define NEOPIXELS_LOG_H
 
 #include <cstdio>
-#include "Types.h"
+#include "esp_log.h"
 
 #if defined (RGB_DEBUG)
 #if !defined(RGB_LOG_LEVEL)
-#define RGB_LOG_LEVEL 1
+#define RGB_LOG_LEVEL 2
 #endif
 #endif
 
-namespace rgb::log {
+#if defined (RGB_VERBOSE)
+#undef RGB_LOG_LEVEL
+#define RGB_LOG_LEVEL 3
+#endif
 
-auto printHeader(const char* level, const char* function) -> void;
+namespace rgb {
 
-template<typename Impl>
-class BaseLogging {
+class Logging {
 public:
-  constexpr auto Start() {
-    impl.start();
-  }
-
-  constexpr auto Stop() {
-    impl.stop();
-  }
-
-private:
-  Impl impl;
+  static auto Start() -> void;
 };
 
-// Opaque type in header - users can't see the implementation
-class LoggingImpl;
-using Logging = BaseLogging<LoggingImpl>;
-
+// Errors are always logged right now
 #define ERROR(format, ...) do { \
-  rgb::log::printHeader("ERROR", __PRETTY_FUNCTION__); \
-  printf(format, ##__VA_ARGS__); \
-  printf("\n");            \
+  ESP_LOGE(__PRETTY_FUNCTION__, format, ##__VA_ARGS__); \
 } while(false)
 
-#if RGB_LOG_LEVEL > 0
+#if RGB_LOG_LEVEL >= 1
+#define WARN(format, ...) do { \
+  ESP_LOGW(__PRETTY_FUNCTION__, format, ##__VA_ARGS__); \
+} while(false)
+#else
+#define WARN(format, ...)
+#endif
+
+#if RGB_LOG_LEVEL >= 2
 #define INFO(format, ...) do { \
-  rgb::log::printHeader("INFO", __PRETTY_FUNCTION__);  \
-  printf(format, ##__VA_ARGS__);                \
-  printf("\n");            \
+  ESP_LOGI(__PRETTY_FUNCTION__, format, ##__VA_ARGS__); \
 } while(false)
 #else
 #define INFO(format, ...)
 #endif
 
-
-#if RGB_LOG_LEVEL > 1
+#if RGB_LOG_LEVEL >= 3
 #define TRACE(format, ...) do { \
-  rgb::log::printHeader("TRACE", __PRETTY_FUNCTION__); \
-  printf(format, ##__VA_ARGS__); \
-  printf("\n");            \
+  ESP_LOGT(__PRETTY_FUNCTION__, format, ##__VA_ARGS__); \
 } while(false)
 #else
 #define TRACE(format, ...)

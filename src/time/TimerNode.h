@@ -5,6 +5,7 @@
 #ifndef RGBLIB_TIMERNODE_H
 #define RGBLIB_TIMERNODE_H
 
+#include <optional>
 #include "Types.h"
 #include "Assertions.h"
 #include "Func.h"

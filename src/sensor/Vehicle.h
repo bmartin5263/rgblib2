@@ -32,7 +32,7 @@ public:
 
   auto setTimeout(Duration timeout) -> void;
   auto update() -> void;
-  auto connect(pin_num rx = RX, pin_num tx = TX) -> bool;
+  auto connect(pin_num rx = 0, pin_num tx = 1) -> bool;
   auto disconnect() -> void;
   auto setLowPowerMode(bool value) -> void;
 
