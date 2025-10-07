@@ -18,8 +18,8 @@ class PushButton {
   static constexpr auto doNothing() -> void {}
 
 public:
-  explicit PushButton(pin_num pin);
-  PushButton(pin_num pin, Runnable callback);
+  explicit PushButton(PinNumber pin);
+  PushButton(PinNumber pin, Runnable callback);
   auto onPress(const Runnable& callback) noexcept -> PushButton&;
 
   auto update() -> ButtonState;

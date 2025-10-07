@@ -5,6 +5,7 @@
 #ifndef RGBLIB_GPIOESP32_H
 #define RGBLIB_GPIOESP32_H
 
+#include <utility>
 #include "GPIOBase.h"
 
 namespace rgb::priv {
@@ -16,6 +17,7 @@ public:
   static constexpr auto DEFAULT_INTR_TYPE = gpio_int_type_t::GPIO_INTR_DISABLE;
 
   auto activatePin(PinNumber pin, PinMode mode) -> void;
+  auto readPin(PinNumber pin) -> int;
 private:
   static constexpr auto map(PinMode mode) -> gpio_mode_t;
 };
@@ -31,11 +33,18 @@ auto GPIOESP32::activatePin(PinNumber pin, PinMode mode) -> void {
   gpio_config(&io_conf);
 }
 
+auto GPIOESP32::readPin(rgb::PinNumber pin) -> int {
+  return gpio_get_level(static_cast<gpio_num_t>(pin.value));
+}
+
 constexpr auto GPIOESP32::map(rgb::PinMode mode) -> gpio_mode_t {
   switch (mode) {
+    case PinMode::READ:
+      return gpio_mode_t::GPIO_MODE_INPUT;
     case PinMode::WRITE:
       return gpio_mode_t::GPIO_MODE_OUTPUT;
   }
+  std::unreachable();
 }
 
 }

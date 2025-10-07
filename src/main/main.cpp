@@ -17,6 +17,7 @@
 #include "Log.h"
 #include "esp_log.h"
 #include "GPIO.h"
+#include "System.h"
 
 using namespace rgb;
 
@@ -45,6 +46,7 @@ auto configureCanUart() {
     .source_clk = UART_SCLK_DEFAULT,
     .flags = {
       .allow_pd = 0,
+      .backup_before_sleep = 0
     }
   };
 
@@ -65,9 +67,9 @@ extern "C" auto app_main() -> void {
   INFO("Starting Application");
 
   // Configure
-  auto stick = LEDStrip<stickLen, rgb::format::GRBW>(pin_num{9});
-  auto ledStrip = LEDStrip<40, rgb::format::GRB>(pin_num{46});
-  auto debugLed = LEDStrip<1, rgb::format::GRB>(pin_num{38});
+  auto stick = LEDStrip<stickLen, rgb::format::GRBW>(PinNumber{9});
+  auto ledStrip = LEDStrip<40, rgb::format::GRB>(PinNumber{46});
+  auto debugLed = LEDStrip<1, rgb::format::GRB>(PinNumber{38});
 
   // Initialize
   stick.start();
@@ -75,20 +77,10 @@ extern "C" auto app_main() -> void {
   ledStrip.start();
 
   // Setup Input Pin
-  gpio_config_t io_conf = {
-    .pin_bit_mask = (1ULL << 6),
-    .mode = gpio_mode_t::GPIO_MODE_INPUT,
-    .pull_up_en = gpio_pullup_t::GPIO_PULLUP_ENABLE,  // Enable internal pull-up
-    .pull_down_en = gpio_pulldown_t::GPIO_PULLDOWN_DISABLE,
-    .intr_type = gpio_int_type_t::GPIO_INTR_DISABLE
-  };
-  gpio_config(&io_conf);
-
-  GPIO::ActivatePin(PinNumber{6}, PinMode::WRITE);
-
+  GPIO::ActivatePin(PinNumber{6}, PinMode::READ);
 
   configureCanUart();
-  vTaskDelay(100 / portTICK_PERIOD_MS);
+  System::MilliSleep(100);
 
   // Main Loop
   INFO("Beginning Main Loop");
@@ -99,7 +91,7 @@ extern "C" auto app_main() -> void {
     ledStrip.reset();
 
     // User update code
-    int level = gpio_get_level(gpio_num_t::GPIO_NUM_6);
+    int level = GPIO::ReadPin(PinNumber{6});
     INFO("Display! %i", level);
     if (level > 0) {
       debugLed.fill(Color::BLUE(.3f));
@@ -146,6 +138,6 @@ extern "C" auto app_main() -> void {
 //    }
 //    uart_flush_input(CAN_UART);  // Clear buffer
 
-    vTaskDelay(5 / portTICK_PERIOD_MS);
+    System::MilliSleep(5);
   }
 }

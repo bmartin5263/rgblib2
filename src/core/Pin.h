@@ -16,8 +16,14 @@ enum class PinMode {
 };
 
 struct PinNumber {
-  constexpr explicit PinNumber(u8 value): value(value) {}
-  u8 value;
+  constexpr explicit PinNumber(uint value): value(value) {}
+
+  template<class T>
+  auto to() -> T {
+    return static_cast<T>(value);
+  }
+
+  uint value;
 };
 
 struct TurnOffPin {

@@ -7,6 +7,7 @@
 
 #include <led_strip.h>
 #include "Types.h"
+#include "Pin.h"
 #include "Assertions.h"
 #include "Color.h"
 #include "PixelList.h"
@@ -22,13 +23,13 @@ class LEDStrip : public PixelList, public LEDCircuit {
   Pixel pixels[N];
   led_strip_handle_t leds;
   int offset;
-  pin_num pin;
+  PinNumber pin;
   bool reversed;
   bool started;
 
 public:
   constexpr explicit LEDStrip(
-    pin_num pin,
+    PinNumber pin,
     u16 offset = 0
   ):
     pixels{}, leds{}, offset{offset}, pin{pin}, reversed{false}, started{false}
@@ -40,7 +41,7 @@ public:
       return;
     }
     auto config = led_strip_config_t {
-      .strip_gpio_num = pin,   // The GPIO that connected to the LED strip's data line
+      .strip_gpio_num = pin.to<int>(),   // The GPIO that connected to the LED strip's data line
       .max_leds = N,          // The number of LEDs in the strip,
       .led_pixel_format = FORMAT.nativeFormat, // Pixel format of your LED strip
       .led_model = MODEL,            // LED strip model

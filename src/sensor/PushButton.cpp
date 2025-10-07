@@ -8,13 +8,13 @@
 
 namespace rgb {
 
-PushButton::PushButton(pin_num pin)
+PushButton::PushButton(PinNumber pin)
   : pin(pin), button()
 {
 //  pinMode(pin, INPUT); TODO
 }
 
-PushButton::PushButton(pin_num pin, Runnable callback)
+PushButton::PushButton(PinNumber pin, Runnable callback)
   : pin(pin), button(std::move(callback))
 {
 //  pinMode(pin, INPUT); TODO

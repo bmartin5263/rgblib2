@@ -34,12 +34,16 @@ idf_component_register(
         "../core/Pin.h"
         "../core/Point.h"
         "../core/Scene.h"
+        "../core/System.h"
         "../core/Trigger.h"
         "../core/Types.h"
         "../core/Util.h"
         "../core/priv/GPIOBase.h"
         "../core/priv/GPIOESP32.h"
         "../core/priv/GPIOImpl.h"
+        "../core/priv/HostSystemBase.h"
+        "../core/priv/HostSystemESP32.h"
+        "../core/priv/HostSystemImpl.h"
         "../core/priv/LoggingSystem.h"
         "../core/priv/LoggingSystemBase.cpp"
         "../core/priv/LoggingSystemBase.h"
@@ -84,8 +88,6 @@ idf_component_register(
         "../sensor/Vehicle.cpp"
         "../sensor/Vehicle.h"
 
-        "../system/System.h"
-
         "../time/Stopwatch.cpp"
         "../time/Stopwatch.h"
         "../time/Timer.cpp"
@@ -105,12 +107,14 @@ idf_component_register(
         "../led"
         "../pixel"
         "../sensor"
-        "../system"
         "../time"
 
         PRIV_INCLUDE_DIRS
         "../core/priv"
 )
+
+
+
 
 target_compile_definitions(${COMPONENT_LIB} PUBLIC
         RGB_DEBUG

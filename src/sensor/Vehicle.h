@@ -13,6 +13,7 @@
 #include "Assertions.h"
 #include "Clock.h"
 #include "Util.h"
+#include "Pin.h"
 
 namespace rgb {
 
@@ -32,7 +33,7 @@ public:
 
   auto setTimeout(Duration timeout) -> void;
   auto update() -> void;
-  auto connect(pin_num rx = 0, pin_num tx = 1) -> bool;
+  auto connect(PinNumber rx = PinNumber{0}, PinNumber tx = PinNumber{1}) -> bool;
   auto disconnect() -> void;
   auto setLowPowerMode(bool value) -> void;
 

@@ -358,7 +358,7 @@ bool COBD::getVIN(char* buffer, byte bufsize)
 				}
 			}
 		}
-		rgb::system::microSleep(100);
+		rgb::System::MicroSleep(100);
 	}
     return false;
 }
@@ -404,7 +404,7 @@ byte COBD::getVersion()
 byte COBD::receive(char* buffer, byte bufsize, int timeout)
 {
 	unsigned char n = 0;
-	unsigned long startTime = rgb::system::milliTime();
+	unsigned long startTime = rgb::System::MilliTime();
 	char c = 0;
 	for (;;) {
 		if (OBDUART.available()) {
@@ -428,7 +428,7 @@ byte COBD::receive(char* buffer, byte bufsize, int timeout)
 				// prompt char received
 				break;
 			}
-			if ((int)(rgb::system::milliTime() - startTime) > timeout) {
+			if ((int)(rgb::System::MilliTime() - startTime) > timeout) {
 			    // timeout
 			    break;
 			}
@@ -509,7 +509,7 @@ bool COBD::setBaudRate(unsigned long baudrate)
     OBDUART.print("ATBR1 ");
     OBDUART.print(baudrate);
     OBDUART.print('\r');
-    rgb::system::milliSleep(50);
+    rgb::System::MilliSleep(50);
     OBDUART.end();
     OBDUART.begin(baudrate, UART_PARITY_DISABLE, -1, -1);
     recover();

@@ -95,7 +95,7 @@ auto Clock::Milli() -> milliseconds_t {
 }
 
 auto Clock::Now() -> Timestamp {
-  return Timestamp{static_cast<u64>(system::microTime())};
+  return Timestamp{System::MicroTime()};
 }
 
 auto Clock::Delta() -> Duration {

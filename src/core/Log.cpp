@@ -9,7 +9,7 @@
 namespace rgb {
 
 namespace {
-constinit rgb::_priv::LoggingSystem loggingSystem = rgb::_priv::LoggingSystem{};
+constinit rgb::priv::LoggingSystem loggingSystem = rgb::priv::LoggingSystem{};
 }
 
 auto Logging::Start() -> void {

@@ -14,7 +14,7 @@ auto OBDDestroyer::operator()(COBD& c) const noexcept -> void {
   c.end();
 }
 
-auto Vehicle::connect(pin_num rx, pin_num tx) -> bool {
+auto Vehicle::connect(PinNumber rx, PinNumber tx) -> bool {
   auto lock = std::unique_lock { mu };
   if (obdHandle->getState() == OBD_STATES::OBD_CONNECTED) {
     INFO("Vehicle already connected");
@@ -27,7 +27,7 @@ auto Vehicle::connect(pin_num rx, pin_num tx) -> bool {
   obdHandle.reset({});
   mConnected = false;
 
-  if (!obdHandle->begin(rx, tx)) {
+  if (!obdHandle->begin(rx.value, tx.value)) {
     ERROR("Vehicle begin() failed");
 //    FAIL("Vehicle begin() failed", Color::MAGENTA(.01f));
     return false;

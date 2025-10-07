@@ -9,9 +9,8 @@
 
 namespace rgb::priv {
 
-class GPIOBase {
-public:
-};
+class GPIOBase {};
+
 }
 
 

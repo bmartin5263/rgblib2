@@ -5,19 +5,16 @@
 #ifndef RGBLIB_GPIO_H
 #define RGBLIB_GPIO_H
 
-#include "Types.h"
 #include "priv/GPIOImpl.h"
+#include "Types.h"
 #include "Pin.h"
 
 namespace rgb {
 
-struct GPIOConfiguration {
-  PinMode mode;
-};
-
 class GPIO {
 public:
   static auto ActivatePin(PinNumber pin, PinMode mode) -> void;
+  static auto ReadPin(PinNumber pin) -> int;
 
 private:
   static auto Implementation() -> priv::GPIOImpl&;
@@ -31,6 +28,10 @@ auto GPIO::Implementation() -> priv::GPIOImpl& {
 
 auto GPIO::ActivatePin(PinNumber pin, PinMode mode) -> void {
   Implementation().activatePin(pin, mode);
+}
+
+auto GPIO::ReadPin(rgb::PinNumber pin) -> int {
+  return Implementation().readPin(pin);
 }
 
 }
