@@ -4,10 +4,6 @@
 
 #include "Clock.h"
 #include "Log.h"
-#include "Config.h"
-#include "esp_timer.h"
-#include "driver/gpio.h"
-#include "freertos/FreeRTOS.h"
 #include "System.h"
 
 namespace rgb {
@@ -23,18 +19,19 @@ auto Clock::start(frames_t targetFps) -> void {
 }
 
 auto Clock::startTick() -> void {
-  mTickStart = esp_timer_get_time();
+  mTickStart = System::MicroTime();
   auto elapsed = mTickStart - mLastFrameRateCheck;
 
   if (elapsed >= 1'000'000) { // Update every second
     INFO("FPS: %llu", mFpsCounter);
 
-    if (mFpsCounter < (mTargetFps / 2)) {
-      gpio_set_level(static_cast<gpio_num_t>(config::LED_DROPPING_FRAMES), 0);
-    }
-    else {
-      gpio_set_level(static_cast<gpio_num_t>(config::LED_DROPPING_FRAMES), 1);
-    }
+    // TODO
+//    if (mFpsCounter < (mTargetFps / 2)) {
+//      gpio_set_level(static_cast<gpio_num_t>(config::LED_DROPPING_FRAMES), 0);
+//    }
+//    else {
+//      gpio_set_level(static_cast<gpio_num_t>(config::LED_DROPPING_FRAMES), 1);
+//    }
 
     mLastFps = mFpsCounter;
     mFpsCounter = 0;
@@ -51,11 +48,11 @@ auto Clock::frames() const -> frames_t {
 }
 
 auto Clock::milli() const -> milliseconds_t {
-  return esp_timer_get_time() / 1000;
+  return System::MicroTime() / 1000;
 }
 
 auto Clock::stopTick() -> void {
-  auto stop = static_cast<u64>(esp_timer_get_time());
+  auto stop = System::MicroTime();
   auto duration = stop - mTickStart;
   if (duration >= mMaxMicrosPerFrame) {
     return;
@@ -63,19 +60,7 @@ auto Clock::stopTick() -> void {
 
   auto sleep = mMaxMicrosPerFrame - duration;
   mDelta = duration + sleep;
-
-  if (stop < mNextFrame) {
-    u64 wait = mNextFrame - stop;
-    if (wait > 1000) {
-      // Long wait: yield to other tasks
-      vTaskDelay((wait - 500) / 1000 / portTICK_PERIOD_MS);
-    }
-
-    // Precise wait: busy loop
-    while (esp_timer_get_time() < mNextFrame) {}
-  }
-
-  mNextFrame += FRAME_TIME_US;
+  System::MicroSleep(sleep);
 }
 
 auto Clock::Start(frames_t fps) -> void {

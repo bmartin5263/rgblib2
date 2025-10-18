@@ -6,7 +6,6 @@
 #define RGBLIB_CLOCK_H
 
 #include "Types.h"
-#include "ClockTime.h"
 
 namespace rgb {
 

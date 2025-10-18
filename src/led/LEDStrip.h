@@ -36,7 +36,7 @@ public:
   {
   }
 
-  auto start() -> void {
+  auto start() -> void override {
     if (started) {
       return;
     }

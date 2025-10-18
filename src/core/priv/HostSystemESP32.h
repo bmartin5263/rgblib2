@@ -9,32 +9,28 @@
 #include "HostSystemBase.h"
 #include "esp_timer.h"
 #include "esp_task.h"
+#include "esp_rom_sys.h"
 
 namespace rgb::priv {
 
 class HostSystemESP32 : public HostSystemBase {
 public:
-  auto microTime() -> microseconds_t;
-  auto milliTime() -> milliseconds_t;
-  auto microSleep(microseconds_t time) -> void;
-  auto milliSleep(milliseconds_t time) -> void;
+  auto microTime() -> microseconds_t {
+    return esp_timer_get_time();
+  }
+  auto milliTime() -> milliseconds_t {
+    return microTime() / 1000;
+  }
+
+  auto microSleep(microseconds_t time) -> void {
+    return esp_rom_delay_us(time);
+  }
+
+  auto milliSleep(milliseconds_t time) -> void {
+    return vTaskDelay(time / portTICK_PERIOD_MS);
+  }
 };
 
-auto HostSystemESP32::microTime() -> microseconds_t {
-  return esp_timer_get_time();
-}
-
-auto HostSystemESP32::milliTime() -> milliseconds_t {
-  return microTime() / 1000;
-}
-
-auto HostSystemESP32::microSleep(microseconds_t time) -> void {
-  return vTaskDelay(time);
-}
-
-auto HostSystemESP32::milliSleep(milliseconds_t time) -> void {
-  return vTaskDelay(time / portTICK_PERIOD_MS);
-}
 
 }
 

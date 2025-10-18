@@ -10,6 +10,7 @@
 
 namespace rgb {
 
+// for (auto [index, item] : enumerate(iterable)) { ... }
 template <typename T,
   typename TIter = decltype(std::begin(std::declval<T>())),
   typename = decltype(std::end(std::declval<T>()))>

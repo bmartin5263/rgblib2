@@ -1,10 +1,12 @@
 idf_component_register(
         REQUIRES
-        spi_flash led_strip esp_timer driver LovyanGFX
+        spi_flash led_strip esp_timer driver
 
         SRCS
         "main.cpp"
-        "main2.cpp"
+
+        "../app/Application.h"
+        "../app/ApplicationBuilder.h"
 
         "../core/App.cpp"
         "../core/App.h"
@@ -15,7 +17,6 @@ idf_component_register(
         "../core/Brightness.h"
         "../core/Clock.cpp"
         "../core/Clock.h"
-        "../core/ClockTime.h"
         "../core/Color.h"
         "../core/Config.h"
         "../core/Debug.cpp"
@@ -61,6 +62,8 @@ idf_component_register(
         "../effect/TrailingEffect.cpp"
         "../effect/TrailingEffect.h"
 
+        "../event/Event.h"
+
         "../led/LEDCircuit.h"
         "../led/LEDCore.h"
         "../led/LEDMatrix.h"
@@ -98,6 +101,7 @@ idf_component_register(
         "../time/TimerNode.h"
 
         INCLUDE_DIRS
+        "../app"
         "../core"
         "../core/debug"
         "../core/threading"
@@ -112,6 +116,7 @@ idf_component_register(
         PRIV_INCLUDE_DIRS
         "../core/priv"
 )
+
 
 
 

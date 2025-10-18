@@ -6,6 +6,7 @@
 #define RGBLIB_GPIOESP32_H
 
 #include <utility>
+#include <driver/gpio.h>
 #include "GPIOBase.h"
 
 namespace rgb::priv {
