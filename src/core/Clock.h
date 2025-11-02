@@ -11,43 +11,38 @@ namespace rgb {
 
 class Clock {
 public:
-  static constexpr auto FRAME_TIME_US = 3333;
+  explicit Clock(frames_t fps): mTargetFps(fps), mMaxMillisecondsPerFrame(1000 / fps)  {}
 
-  static auto Start(frames_t fps) -> void;
-
-  static auto StartTick() -> void;
-  static auto StopTick() -> void;
+  template<class T>
+  auto forever(const T& tickFunction) -> void;
 
   static auto Now() -> Timestamp;
-  static auto Delta() -> Duration;
-  static auto Milli() -> milliseconds_t;
-  static auto Frames() -> frames_t;
-  static auto Fps() -> frames_t;
 
 private:
-  Clock() = default;
-  auto start(frames_t targetFps) -> void;
-
-  static auto Instance() -> Clock&;
 
   auto startTick() -> void;
   auto stopTick() -> void;
 
-  [[nodiscard]] auto milli() const -> milliseconds_t ;
-  [[nodiscard]] auto frames() const -> frames_t;
-  [[nodiscard]] auto delta() const -> Duration;
-  [[nodiscard]] auto fps() const -> frames_t;
-
   frames_t mFrames{};
   frames_t mFpsCounter{};
   frames_t mLastFps{};
-  frames_t mTargetFps{};
+  frames_t mTargetFps; // for detecting low FPS
   u64 mNextFrame{};
   microseconds_t mTickStart{};
   microseconds_t mLastFrameRateCheck{};
-  microseconds_t mMaxMicrosPerFrame{};
+  microseconds_t mMaxMillisecondsPerFrame;
   microseconds_t mDelta{};
+  bool lowFpsDetected{};
 };
+
+template<class T>
+auto Clock::forever(const T& tickFunction) -> void {
+  while (true) {
+    startTick();
+    tickFunction();
+    stopTick();
+  }
+}
 
 }
 

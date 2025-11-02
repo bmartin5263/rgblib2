@@ -358,7 +358,7 @@ bool COBD::getVIN(char* buffer, byte bufsize)
 				}
 			}
 		}
-		rgb::System::MicroSleep(100);
+		rgb::System::MilliSleep(100);
 	}
     return false;
 }

@@ -45,7 +45,7 @@ struct number_wrapper {
   constexpr explicit number_wrapper(Self& wrapper) : value(wrapper.value) {}
 
   template<typename cast_to>
-  constexpr auto to() const -> cast_to {
+  constexpr auto as() const -> cast_to {
     return static_cast<cast_to>(value);
   }
 
@@ -143,7 +143,7 @@ struct number_wrapper {
 
 struct Duration : public number_wrapper<time_t, Duration> {
   constexpr explicit Duration() : number_wrapper<time_t, Duration>(0) {}
-  constexpr explicit Duration(time_t microseconds) : number_wrapper<time_t, Duration>(microseconds) {}
+  constexpr explicit Duration(time_t milliseconds) : number_wrapper<time_t, Duration>(milliseconds) {}
   static constexpr auto Seconds(time_t amount) -> Duration { return Duration(amount * 1000000); }
   static constexpr auto Minutes(time_t amount) -> Duration { return Duration(amount * 60000000); }
   static constexpr auto Milliseconds(time_t amount) -> Duration { return Duration(amount * 1000); }
@@ -158,7 +158,7 @@ struct Duration : public number_wrapper<time_t, Duration> {
 
 struct Timestamp : public number_wrapper<time_t, Timestamp> {
   constexpr explicit Timestamp() : number_wrapper<time_t, Timestamp>(0) {}
-  constexpr explicit Timestamp(time_t microseconds) : number_wrapper<time_t, Timestamp>(microseconds) {}
+  constexpr explicit Timestamp(time_t milliseconds) : number_wrapper<time_t, Timestamp>(milliseconds) {}
   static constexpr auto OfMicroseconds(time_t amount) -> Timestamp { return Timestamp(amount); }
   static constexpr auto Max() -> Timestamp { return Timestamp(std::numeric_limits<time_t>::max()); }
   static constexpr auto Zero() -> Timestamp { return Timestamp(0); }
@@ -180,6 +180,16 @@ struct Timestamp : public number_wrapper<time_t, Timestamp> {
   using number_wrapper::operator-;
   constexpr auto operator-(const Duration& rhs) const -> Timestamp {
     return Timestamp { value - rhs.value };
+  }
+
+  using number_wrapper::operator*;
+  constexpr auto operator*(const Duration& rhs) const -> Timestamp {
+    return Timestamp { value * rhs.value };
+  }
+
+  using number_wrapper::operator/;
+  constexpr auto operator/(const Duration& rhs) const -> Timestamp {
+    return Timestamp { value / rhs.value };
   }
 
   using number_wrapper::operator+=;

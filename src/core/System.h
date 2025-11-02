@@ -15,17 +15,17 @@ namespace rgb {
 class System {
 public:
 
-  static auto MicroTime() -> microseconds_t {
-    return Implementation().microTime();
-  }
+//  static auto MicroTime() -> microseconds_t {
+//    return Implementation().microTime();
+//  }
 
   static auto MilliTime() -> milliseconds_t {
     return Implementation().milliTime();
   }
 
-  static auto MicroSleep(microseconds_t time) -> void {
-    return Implementation().microSleep(time);
-  }
+//  static auto MicroSleep(microseconds_t time) -> void {
+//    return Implementation().microSleep(time);
+//  }
 
   static auto MilliSleep(milliseconds_t time) -> void {
     return Implementation().milliSleep(time);
