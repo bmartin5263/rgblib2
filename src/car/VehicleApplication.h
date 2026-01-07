@@ -7,6 +7,7 @@
 
 #include "VehicleApplicationBuilder.h"
 #include "Clock.h"
+#include "Vehicle.h"
 
 namespace rgb {
 
@@ -16,10 +17,10 @@ class VehicleApplication {
 public:
   VehicleApplication() = default;
   virtual ~VehicleApplication() = default;
-  VehicleApplication(const VehicleApplication& rhs) = default;
-  VehicleApplication(VehicleApplication&& rhs) noexcept = default;
-  VehicleApplication& operator=(const VehicleApplication& rhs) = default;
-  VehicleApplication& operator=(VehicleApplication&& rhs) noexcept = default;
+  VehicleApplication(const VehicleApplication& rhs) = delete;
+  VehicleApplication(VehicleApplication&& rhs) noexcept = delete;
+  VehicleApplication& operator=(const VehicleApplication& rhs) = delete;
+  VehicleApplication& operator=(VehicleApplication&& rhs) noexcept = delete;
 
   auto run() -> void;
 
@@ -30,6 +31,7 @@ protected:
   virtual constexpr auto setup(VehicleApplicationBuilder& setup) -> void = 0;
   virtual auto update() -> void = 0;
   virtual auto draw() -> void = 0;
+  Vehicle vehicle{};
 
 private:
   auto buildApplication() -> void;

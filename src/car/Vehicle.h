@@ -33,7 +33,7 @@ public:
 
   auto setTimeout(Duration timeout) -> void;
   auto update() -> void;
-  auto connect(PinNumber rx = PinNumber{0}, PinNumber tx = PinNumber{1}) -> bool;
+  auto connect(PinNumber rx = PinNumber{44}, PinNumber tx = PinNumber{43}) -> bool;
   auto disconnect() -> void;
   auto setLowPowerMode(bool value) -> void;
 

@@ -18,6 +18,14 @@
 
 namespace rgb {
 
+/**
+ * Represents a physical LED Strip, also functions as a PixelList with a 1:1 mapping
+ * between pixel and LED
+ *
+ * @tparam N number of physical LEDs
+ * @tparam FORMAT type of LEDs (i.e RGBW)
+ * @tparam MODEL model of LEDs (i.e WS2812)
+ */
 template <u16 N, const RgbFormat FORMAT, led_model_t MODEL = LED_MODEL_WS2812>
 class LEDStrip : public PixelList, public LEDCircuit {
   Pixel pixels[N];

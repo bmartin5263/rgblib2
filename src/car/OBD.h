@@ -9,6 +9,8 @@
 #include "Types.h"
 #include "driver/uart.h"
 #include "hal/uart_types.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 using byte = unsigned char;
 
 #define OBD_MODEL_UART 0
@@ -225,7 +227,7 @@ protected:
 	char* getResponse(byte& pid, char* buffer, byte bufsize, int timeout);
 	byte receive(char* buffer, byte bufsize, int timeout = OBD_TIMEOUT_SHORT);
 	void write(const char* s);
-	void dataIdleLoop() {}
+	void dataIdleLoop() { vTaskDelay(1); }
 	void recover();
 	void debugOutput(const char* s);
 	int normalizeData(byte pid, char* data);

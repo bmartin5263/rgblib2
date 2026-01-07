@@ -18,6 +18,7 @@ public:
   auto microTime() -> microseconds_t {
     return esp_timer_get_time();
   }
+
   auto milliTime() -> milliseconds_t {
     return microTime() / 1000;
   }

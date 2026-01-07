@@ -10,21 +10,26 @@
 
 namespace rgb {
 
-auto PixelList::fill(const Color& color) -> FillChain {
-  return fill(color, 0, getSize());
+#ifdef RGB_DEBUG
+constexpr auto DEBUG = true;
+#else
+constexpr auto DEBUG = false;
+#endif
+
+auto PixelList::fill(const Color& color) -> void {
+  fill(color, 0, getSize());
 }
 
-auto PixelList::fill(const Color& color, u16 range) -> FillChain {
-  return fill(color, 0, range);
+auto PixelList::fill(const Color& color, u16 range) -> void {
+  fill(color, 0, range);
 }
 
-auto PixelList::fill(const Color& color, u16 start, u16 range) -> FillChain {
-  for (int i = 0; i < range; ++i) {
-    *get(start + i) = color;
+auto PixelList::fill(const Color& color, u16 start, u16 endExclusive) -> void {
+  endExclusive = std::min(getSize(), endExclusive);
+  auto head = getHead();
+  for (int i = start; i < endExclusive; ++i) {
+    *(head + i) = color;
   }
-  auto end = start + range;
-  auto newSize = static_cast<u16>(getSize() - end);
-  return { getHead() + end, newSize };
 }
 
 auto PixelList::clear() -> void {
@@ -76,27 +81,6 @@ auto PixelList::end() -> Pixel* {
 
 auto PixelList::end() const -> const Pixel* {
   return getHead() + getSize();
-}
-
-FillChain::FillChain(rgb::Pixel* head, rgb::u16 size): mHead(head), mSize(size) {
-
-}
-
-auto FillChain::fill(const rgb::Color& color) -> FillChain {
-  return fill(color, 0, mSize);
-}
-
-auto FillChain::fill(const rgb::Color& color, u16 range) -> FillChain {
-  return fill(color, 0, range);
-}
-
-auto FillChain::fill(const Color& color, u16 start, u16 range) -> FillChain {
-  for (int i = 0; i < range; ++i) {
-    mHead[start + i] = color;
-  }
-  auto end = start + range;
-  auto newSize = static_cast<u16>(mSize - end);
-  return { mHead + end, newSize };
 }
 
 Pixel* NullPixelList::getHead() {

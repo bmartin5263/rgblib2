@@ -19,7 +19,7 @@ struct PinNumber {
   constexpr explicit PinNumber(uint value): value(value) {}
 
   template<class T>
-  auto to() -> T {
+  constexpr auto to() -> T {
     return static_cast<T>(value);
   }
 

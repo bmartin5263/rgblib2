@@ -112,8 +112,8 @@ idf_component_register(
         "../home/hub/HubTask.h"
         "../home/hub/HubUI.cpp"
         "../home/hub/HubUI.h"
-        "../home/lite/LiteApplication.cpp"
-        "../home/lite/LiteApplication.h"
+        "../home/node/NodeApplication.cpp"
+        "../home/node/NodeApplication.h"
 
         INCLUDE_DIRS
         "../car"
@@ -129,7 +129,7 @@ idf_component_register(
         "../effect"
         "../home"
         "../home/hub"
-        "../home/lite"
+        "../home/node"
 
         PRIV_INCLUDE_DIRS
         "../core/network/priv"
@@ -139,6 +139,7 @@ idf_component_register(
 
 target_compile_definitions(${COMPONENT_LIB} PUBLIC
         RGB_DEBUG
+        CONFIG_FREERTOS_HZ=1000
 )
 target_compile_options(${COMPONENT_LIB} PRIVATE
         -Werror=switch

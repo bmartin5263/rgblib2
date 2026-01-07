@@ -158,8 +158,9 @@ struct Duration : public number_wrapper<time_t, Duration> {
 
 struct Timestamp : public number_wrapper<time_t, Timestamp> {
   constexpr explicit Timestamp() : number_wrapper<time_t, Timestamp>(0) {}
-  constexpr explicit Timestamp(time_t milliseconds) : number_wrapper<time_t, Timestamp>(milliseconds) {}
-  static constexpr auto OfMicroseconds(time_t amount) -> Timestamp { return Timestamp(amount); }
+  constexpr explicit Timestamp(time_t microseconds) : number_wrapper<time_t, Timestamp>(microseconds) {}
+  static constexpr auto Microseconds(time_t amount) -> Timestamp { return Timestamp(amount); }
+  static constexpr auto Milliseconds(time_t amount) -> Timestamp { return Timestamp(amount * 1000); }
   static constexpr auto Max() -> Timestamp { return Timestamp(std::numeric_limits<time_t>::max()); }
   static constexpr auto Zero() -> Timestamp { return Timestamp(0); }
   constexpr auto asSeconds() -> time_t { return value / 1000000; }
@@ -170,6 +171,11 @@ struct Timestamp : public number_wrapper<time_t, Timestamp> {
   [[nodiscard]]
   constexpr auto percentOf(Timestamp rhs) const -> normal {
     return static_cast<float>(value) / static_cast<float>(rhs.value);
+  }
+
+  [[nodiscard]]
+  constexpr auto percentOf(Duration rhs) const -> normal {
+    return static_cast<float>(value % rhs.value) / static_cast<float>(rhs.value);
   }
 
   using number_wrapper::operator+;

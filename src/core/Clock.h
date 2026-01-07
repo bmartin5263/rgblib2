@@ -6,6 +6,9 @@
 #define RGBLIB_CLOCK_H
 
 #include "Types.h"
+#include "System.h"
+#include "Log.h"
+#define INCLUDE_xTaskDelayUntil 1
 
 namespace rgb {
 
@@ -19,9 +22,6 @@ public:
   static auto Now() -> Timestamp;
 
 private:
-
-  auto startTick() -> void;
-  auto stopTick() -> void;
 
   frames_t mFrames{};
   frames_t mFpsCounter{};
@@ -37,10 +37,39 @@ private:
 
 template<class T>
 auto Clock::forever(const T& tickFunction) -> void {
+  auto xLastWakeTime = xTaskGetTickCount();
+  auto xFrequency = pdMS_TO_TICKS(5); // 5ms = 200 FPS
+
   while (true) {
-    startTick();
+    vTaskDelayUntil(&xLastWakeTime, xFrequency);
+
+    mTickStart = System::MilliTime();
+    auto elapsed = mTickStart - mLastFrameRateCheck;
+
+    if (elapsed >= 1000) { // Update every second
+      INFO("FPS: %llu", mFpsCounter);
+
+      if (mFpsCounter < (mTargetFps / 2)) {
+        if (!lowFpsDetected) {
+          lowFpsDetected = true;
+          // Do callback
+        }
+      }
+      else {
+        if (lowFpsDetected) {
+          lowFpsDetected = false;
+          // Do recover callback
+        }
+      }
+
+      mLastFps = mFpsCounter;
+      mFpsCounter = 0;
+      mLastFrameRateCheck = mTickStart;
+    }
+    ++mFpsCounter;
+    ++mFrames;
+
     tickFunction();
-    stopTick();
   }
 }
 

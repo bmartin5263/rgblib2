@@ -10,17 +10,29 @@
 
 namespace rgb {
 
-struct MyEvent {
-  static constexpr uint UID = 0u;
+
+struct WakeEvent {
+  static constexpr uint UID = 2u;
 };
 
-struct ApplicationStartedEvent {
-  static constexpr uint UID = 1u;
+struct SleepEvent {
+  static constexpr uint UID = 3u;
 };
+
+struct NullEvent {
+  static constexpr uint UID = 3u;
+};
+
+template<typename ...T>
+using Event2 = std::variant<
+  WakeEvent,
+  SleepEvent,
+  T...
+>;
 
 using Event = std::variant<
-  ApplicationStartedEvent,
-  MyEvent
+  WakeEvent,
+  SleepEvent
 >;
 
 }

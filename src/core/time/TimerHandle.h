@@ -23,7 +23,7 @@ public:
   TimerHandle& operator=(TimerHandle&& rhs) noexcept;
   ~TimerHandle();
 
-  // Release ownership of the timer without canceling it
+  // Release ownership without canceling the timer
   auto detach() -> void;
 
   // Release ownership and cancel the timer

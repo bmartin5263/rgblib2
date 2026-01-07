@@ -10,17 +10,6 @@
 
 namespace rgb {
 
-struct FillChain {
-  FillChain(Pixel* head, u16 size);
-
-  auto fill(const Pixel& color) -> FillChain;
-  auto fill(const Pixel& color, u16 range) -> FillChain;
-  auto fill(const Pixel& color, u16 start, u16 range) -> FillChain;
-
-  Pixel* mHead{};
-  u16 mSize{};
-};
-
 struct Point;
 class PixelSlice;
 class PixelList {
@@ -32,9 +21,9 @@ public:
   [[nodiscard]] auto get(u16 pixel) -> Pixel*;
   [[nodiscard]] auto operator[](u16 pixel) -> Pixel&;
 
-  auto fill(const Color& color) -> FillChain;
-  auto fill(const Color& color, u16 range) -> FillChain;
-  auto fill(const Color& color, u16 start, u16 range) -> FillChain;
+  auto fill(const Color& color) -> void;
+  auto fill(const Color& color, u16 range) -> void;
+  auto fill(const Color& color, u16 start, u16 endExclusive) -> void;
   auto clear() -> void;
   auto set(u16 pixel, const Color& color) -> void;
 

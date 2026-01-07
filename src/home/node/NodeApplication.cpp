@@ -2,11 +2,11 @@
 // Created by Brandon on 10/28/25.
 //
 
-#include "LiteApplication.h"
+#include "NodeApplication.h"
 
 namespace rgb::home {
 
-auto LiteApplication::run() -> void {
+auto NodeApplication::run() -> void {
 
 }
 
