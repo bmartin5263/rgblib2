@@ -9,14 +9,11 @@
 
 #include "Clock.h"
 #include "Func.h"
-#include "EventConcept.h"
 #include "EventType.h"
 
 namespace rgb::home {
 
 class NodeApplication {
-  using EventMap = std::unordered_map<uint, Consumer<const Event&>>;
-
 public:
 
   NodeApplication() = default;
@@ -27,20 +24,8 @@ public:
   NodeApplication& operator=(NodeApplication&& rhs) noexcept = default;
 
   auto run() -> void;
-
-  template<EventConcept T>
-  auto publishEvent(const T& event = {}) -> void;
-
 private:
-  EventMap eventMap{};
 };
-
-template<EventConcept T>
-auto NodeApplication::publishEvent(const T& event) -> void {
-  if (eventMap.contains(T::UID)) {
-    eventMap[T::UID](event);
-  }
-}
 
 
 }

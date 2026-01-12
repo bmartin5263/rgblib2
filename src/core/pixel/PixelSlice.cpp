@@ -6,20 +6,20 @@
 
 namespace rgb {
 
-PixelSlice::PixelSlice(Pixel* head, u16 size) :
+PixelSlice::PixelSlice(Pixel* head, uint size) :
   mHead(head), mSize(size)
 {
 }
 
-auto PixelSlice::getSize() const -> u16 {
+auto PixelSlice::length() const -> uint {
   return mSize;
 }
 
-auto PixelSlice::getHead() -> Pixel* {
+auto PixelSlice::data() -> Pixel* {
   return mHead;
 }
 
-auto PixelSlice::getHead() const -> const Pixel* {
+auto PixelSlice::data() const -> const Pixel* {
   return mHead;
 }
 

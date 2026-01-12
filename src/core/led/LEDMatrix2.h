@@ -37,11 +37,11 @@
 //    return *this;
 //  }
 //
-//  auto getHead() -> Pixel* override {
+//  auto data() -> Pixel* override {
 //    return pixels;
 //  }
 //
-//  auto getHead() const -> const Pixel* override {
+//  auto data() const -> const Pixel* override {
 //    return pixels;
 //  }
 //

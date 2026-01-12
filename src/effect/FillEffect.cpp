@@ -12,10 +12,11 @@ namespace rgb {
 auto FillEffect::draw(PixelList& chain) -> void {
   auto params = FillEffectShaderParameters {
     .now = Clock::Now(),
-    .length = chain.getSize(),
+    .length = chain.length(),
     .position = 0
   };
-  for (auto [i, led] : enumerate(chain)) {
+  for (int i = 0; i < chain.length(); ++i) {
+    auto& led = chain[i];
     params.position = i;
     shader(led, params);
   }

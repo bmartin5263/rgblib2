@@ -22,6 +22,7 @@ public:
   static auto SetImmediateTimeout(const TimerFunction& function) -> TimerHandle;
   static auto ContinuouslyFor(Duration duration, const Runnable& function) -> TimerHandle;
   static auto ContinuouslyFor(Duration duration, const TimerFunction& function) -> TimerHandle;
+  static auto ContinuouslyWhile(const Predicate& function) -> TimerHandle;
 
   static auto ProcessTimers() -> void;
   static auto Cancel(TimerNode* node) -> void;
@@ -37,6 +38,7 @@ private:
 
   auto setTimeout(Duration duration, const TimerFunction& function) -> TimerHandle;
   auto continuouslyFor(Duration duration, const TimerFunction& function) -> TimerHandle;
+  auto continuouslyWhile(const Predicate& function) -> TimerHandle;
   auto cancel(TimerNode* node) -> void;
   auto processTimers() -> void;
   auto executeTimer(TimerNode* node, Timestamp now) -> void;

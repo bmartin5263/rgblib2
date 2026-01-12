@@ -15,6 +15,9 @@ using Consumer = std::function<void(T)>;
 template <typename T>
 using Supplier = std::function<T(void)>;
 
+template <typename In, typename Out>
+using Function = std::function<Out(In)>;
+
 using Predicate = Supplier<bool>;
 
 static constexpr auto DoNothing() {};

@@ -10,8 +10,7 @@
 #include "Pin.h"
 #include "Assertions.h"
 #include "Color.h"
-#include "PixelList.h"
-#include "PixelSlice.h"
+#include "ContiguousPixelList.h"
 #include "LEDCircuit.h"
 #include "Log.h"
 #include "LEDCore.h"
@@ -27,7 +26,7 @@ namespace rgb {
  * @tparam MODEL model of LEDs (i.e WS2812)
  */
 template <u16 N, const RgbFormat FORMAT, led_model_t MODEL = LED_MODEL_WS2812>
-class LEDStrip : public PixelList, public LEDCircuit {
+class LEDStrip : public ContiguousPixelList, public LEDCircuit {
   Pixel pixels[N];
   led_strip_handle_t leds;
   int offset;
@@ -84,19 +83,19 @@ public:
     started = true;
   }
 
-  auto getHead() -> Pixel* override {
+  auto data() -> Pixel* override {
     return pixels;
   }
 
-  auto getHead() const -> const Pixel* override {
+  auto data() const -> const Pixel* override {
     return pixels;
   }
 
-  auto getSize() const -> u16 override {
+  auto length() const -> uint override {
     return N;
   }
 
-  auto getOffset() const -> u16 {
+  auto getOffset() const -> int {
     return offset;
   }
 

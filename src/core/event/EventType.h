@@ -5,35 +5,56 @@
 #ifndef RGBLIB_EVENTTYPE_H
 #define RGBLIB_EVENTTYPE_H
 
+#include <cstddef>
 #include <variant>
 #include "Types.h"
+#include "SystemEvents.h"
 
 namespace rgb {
 
+template<typename Variant, typename ... Extra>
+struct extend_variant;
 
-struct WakeEvent {
-  static constexpr uint UID = 2u;
+template<typename ... Ts, typename ... Extra>
+struct extend_variant<std::variant<Ts...>, Extra...> {
+  using type = std::variant<Ts..., Extra...>; // Used by extend_variant_t
 };
 
-struct SleepEvent {
-  static constexpr uint UID = 3u;
+template<typename Variant, typename... Extra>
+using extend_variant_t = extend_variant<Variant, Extra...>::type;
+
+// Enforces 'EventConcept' constraints when creating the variant
+template<typename... Events>
+using EventVariant = std::variant<Events...>;
+
+template<typename T, typename Variant>
+struct EventIndex;
+
+template<typename T, typename... Ts>
+struct EventIndex<T, std::variant<Ts...>> {
+  static constexpr size_t value = []() {
+    size_t i = 0;
+    ((!std::is_same_v<T, Ts> && (++i, true)) && ...);
+    return i;
+  }();
 };
 
-struct NullEvent {
-  static constexpr uint UID = 3u;
-};
 
-template<typename ...T>
-using Event2 = std::variant<
+template<typename T, typename Variant>
+constexpr size_t EventIndex_v = EventIndex<T, Variant>::value;
+
+using SystemEvent = EventVariant<
+  NullEvent,
   WakeEvent,
   SleepEvent,
-  T...
+  OBDIIConnected,
+  OBDIIDisconnected,
+  CarEngineStarted,
+  CarEngineStopped
 >;
 
-using Event = std::variant<
-  WakeEvent,
-  SleepEvent
->;
+template<typename ...UserEvents>
+using Event = extend_variant_t<SystemEvent, UserEvents...>;
 
 }
 #endif //RGBLIB_EVENTTYPE_H

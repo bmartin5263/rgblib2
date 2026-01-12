@@ -5,4 +5,13 @@ set(EXTRA_COMPONENT_DIRS
         "lib"
 )
 
+if(NOT DEFINED BUILD_TYPE)
+    set(BUILD_TYPE "debug")
+endif()
+
+set(SDKCONFIG_DEFAULTS
+        "sdkconfig.defaults"
+        "sdkconfig.defaults.${BUILD_TYPE}"
+)
+
 project(rgblib)

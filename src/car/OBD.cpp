@@ -7,38 +7,44 @@
 
 #include "OBD.h"
 #include "System.h"
+#include "Log.h"
 #include <cstdio>
 #include <cstring>
 #include <ctype.h>
+#include "LEDs.h"
+#include "Color.h"
 
 // ESP32 UART implementation
 ESP32UART OBDUART;
 
 void ESP32UART::begin(unsigned long baud_rate, uint32_t config, int8_t rxPin, int8_t txPin) {
-    uart_config_t uart_config = {
-        .baud_rate = (int)baud_rate,
-        .data_bits = UART_DATA_8_BITS,
-        .parity = UART_PARITY_DISABLE,
-        .stop_bits = UART_STOP_BITS_1,
-        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
-        .rx_flow_ctrl_thresh = 122,
-        .source_clk = UART_SCLK_DEFAULT,
-        .flags = {}
-    };
+  // Clean up any existing driver before reinstalling
+//    if (initialized) {
+//        end();
+//    }
 
-    // Configure UART parameters
-    uart_param_config(uart_num, &uart_config);
+  uart_config_t uart_config = {
+    .baud_rate = (int) baud_rate,
+    .data_bits = UART_DATA_8_BITS,
+    .parity = UART_PARITY_DISABLE,
+    .stop_bits = UART_STOP_BITS_1,
+    .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+    .rx_flow_ctrl_thresh = 122,
+    .source_clk = UART_SCLK_DEFAULT,
+    .flags = {}
+  };
 
-    // Set UART pins (use default pins if not specified)
-    if (rxPin == -1) rxPin = 16;  // Default RX pin for UART1
-    if (txPin == -1) txPin = 17;  // Default TX pin for UART1
+  // Configure UART parameters
+  uart_param_config(uart_num, &uart_config);
+  uart_set_pin(uart_num, txPin, rxPin, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
 
-    uart_set_pin(uart_num, txPin, rxPin, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+  // Install UART driver (with ring buffer)
+  uart_driver_install(uart_num, 1024, 1024, 0, NULL, 0);
 
-    // Install UART driver (with ring buffer)
-    uart_driver_install(uart_num, 1024, 1024, 0, NULL, 0);
+  debugLed[0] = rgb::Color::YELLOW();
 
-    initialized = true;
+  initialized = true;
+  INFO("UART Initialized");
 }
 
 void ESP32UART::end() {
@@ -50,7 +56,7 @@ void ESP32UART::end() {
 
 size_t ESP32UART::write(const char* str) {
     if (!initialized) return 0;
-    int len = strlen(str);
+    auto len = strlen(str);
     return uart_write_bytes(uart_num, str, len);
 }
 
@@ -96,7 +102,7 @@ int ESP32UART::read() {
 byte COBD::sendCommand(const char* cmd, char* buf, byte bufsize, int timeout)
 {
 	write(cmd);
-	dataIdleLoop();
+  dataIdleLoop();
 	return receive(buf, bufsize, timeout);
 }
 
@@ -113,14 +119,14 @@ void COBD::sendQuery(byte pid)
 bool COBD::readPID(byte pid, int& result, int timeout)
 {
 	// send a query command
-	sendQuery(pid);
+  sendQuery(pid);
 	// receive and parse the response
 	return getResult(pid, result, timeout);
 }
 
 byte COBD::readPID(const byte pid[], byte count, int result[], int timeout)
 {
-	byte results = 0; 
+	byte results = 0;
 	for (byte n = 0; n < count; n++) {
 		if (readPID(pid[n], result[n], timeout)) {
 			results++;
@@ -133,9 +139,9 @@ byte COBD::readDTC(uint16_t codes[], byte maxCodes)
 {
 	/*
 	Response example:
-	0: 43 04 01 08 01 09 
+	0: 43 04 01 08 01 09
 	1: 01 11 01 15 00 00 00
-	*/ 
+	*/
 	byte codesRead = 0;
  	for (byte n = 0; n < 6; n++) {
 		char buffer[128];
@@ -150,7 +156,7 @@ byte COBD::readDTC(uint16_t codes[], byte maxCodes)
 						if (*p == '\r') {
 							p = strchr(p, ':');
 							if (!p) break;
-							p += 2; 
+							p += 2;
 						}
 						uint16_t code = hex2uint16(p);
 						if (code == 0) break;
@@ -267,7 +273,7 @@ int COBD::normalizeData(byte pid, char* data)
 char* COBD::getResponse(byte& pid, char* buffer, byte bufsize, int timeoutMs)
 {
 	while (receive(buffer, bufsize, timeoutMs) > 0) {
-		char *p = buffer;
+    char *p = buffer;
 		while ((p = strstr(p, "41 "))) {
 		    p += 3;
 		    byte curpid = hex2uint8(p);
@@ -286,7 +292,7 @@ char* COBD::getResponse(byte& pid, char* buffer, byte bufsize, int timeoutMs)
 bool COBD::getResult(byte& pid, int& result, int timeoutMs)
 {
 	char buffer[64];
-	char* data = getResponse(pid, buffer, sizeof(buffer), timeoutMs);
+  char* data = getResponse(pid, buffer, sizeof(buffer), timeoutMs);
 	if (!data) {
 		recover();
 		errors++;
@@ -378,8 +384,18 @@ byte COBD::begin(int8_t rxPin, int8_t txPin)
 	long baudrates[] = {115200, 38400};
 	byte version = 0;
 	for (byte n = 0; n < sizeof(baudrates) / sizeof(baudrates[0]) && version == 0; n++) {
-		OBDUART.begin(baudrates[n], UART_PARITY_DISABLE, rxPin, txPin);
-		version = getVersion();
+    INFO("Beginning UART");
+    OBDUART.begin(baudrates[n], UART_PARITY_DISABLE, rxPin, txPin);
+    version = getVersion();
+    INFO("UART Version %i", version);
+    if (version != 0) {
+      if (n == 0) {
+        debugLed[0] = rgb::Color::GREEN();
+      }
+      else {
+        debugLed[0] = rgb::Color::BLUE();
+      }
+    }
 	}
 	return version;
 }
@@ -407,8 +423,8 @@ byte COBD::receive(char* buffer, byte bufsize, int timeout)
 	unsigned long startTime = rgb::System::MilliTime();
 	char c = 0;
 	for (;;) {
-		if (OBDUART.available()) {
-			c = OBDUART.read();
+    if (OBDUART.available()) {
+      c = OBDUART.read();
 			if (!buffer) {
 			       n++;
 			} else if (n < bufsize - 1) {
@@ -424,15 +440,15 @@ byte COBD::receive(char* buffer, byte bufsize, int timeout)
 				}
 			}
 		} else {
-			if (c == '>') {
+      if (c == '>') {
 				// prompt char received
 				break;
 			}
 			if ((int)(rgb::System::MilliTime() - startTime) > timeout) {
-			    // timeout
+        // timeout
 			    break;
 			}
-			dataIdleLoop();
+      dataIdleLoop();
 		}
 	}
 	if (buffer) {
@@ -447,7 +463,7 @@ byte COBD::receive(char* buffer, byte bufsize, int timeout)
 
 void COBD::recover()
 {
-	sendCommand("\r", 0, 0);
+	sendCommand("\r", 0, 0, 20);
 }
 
 bool COBD::init(OBD_PROTOCOLS protocol)
@@ -565,7 +581,7 @@ bool COBD::memsRead(int16_t* acc, int16_t* gyr, int16_t* mag, int16_t* temp)
 		}
 		if (!success) return false;
 	}
-	return true;	
+	return true;
 }
 
 #ifdef DEBUG

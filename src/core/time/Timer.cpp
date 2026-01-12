@@ -49,9 +49,12 @@ auto Timer::ContinuouslyFor(Duration duration, const Runnable& function) -> Time
   return Instance().continuouslyFor(duration, [=](const auto& unused){ function(); });
 }
 
-
 auto Timer::ContinuouslyFor(Duration duration, const TimerFunction& function) -> TimerHandle {
   return Instance().continuouslyFor(duration, function);
+}
+
+auto Timer::ContinuouslyWhile(const Predicate& function) -> TimerHandle {
+  return Instance().continuouslyWhile(function);
 }
 
 auto Timer::SetTimeout(Duration duration, const TimerFunction& function) -> TimerHandle {
@@ -59,11 +62,11 @@ auto Timer::SetTimeout(Duration duration, const TimerFunction& function) -> Time
 }
 
 auto Timer::SetImmediateTimeout(const Runnable& function) -> TimerHandle {
-  return Instance().setTimeout(Duration {0}, [=](const auto& unused){ function(); });
+  return Instance().setTimeout(Duration::Zero(), [=](const auto& unused){ function(); });
 }
 
 auto Timer::SetImmediateTimeout(const TimerFunction& function) -> TimerHandle {
-  return Instance().setTimeout(Duration {0}, function);
+  return Instance().setTimeout(Duration::Zero(), function);
 }
 
 auto Timer::setTimeout(Duration duration, const TimerFunction& function) -> TimerHandle {
@@ -79,6 +82,32 @@ auto Timer::setTimeout(Duration duration, const TimerFunction& function) -> Time
   timer->startedAt = now;
 
   TRACE("Assigning Timer '%i'", timer->id);
+  ASSERT(timer->next == nullptr, "Timer.Next is not nullptr");
+  ASSERT(timer->prev == nullptr, "Timer.Prev is not nullptr");
+
+  TimerNode::InsertFront(toAddHead, timer);
+
+  return TimerHandle { timer };
+}
+
+auto Timer::continuouslyWhile(const Predicate& function) -> TimerHandle {
+  TRACE("ContinuouslyWhile()");
+  auto now = Clock::Now();
+  auto timer = nextTimerNode();
+
+  timer->clean();
+  timer->timerFunction = [&](TimerContext& context){
+    auto doContinue = function();
+    if (doContinue) {
+      context.repeatIn = Duration::Zero();
+    }
+  };
+  timer->cancelFunction = DoNothing;
+  timer->executeAt = now;
+  timer->handleId = nextHandleId++;
+  timer->startedAt = now;
+
+  TRACE("Assigning Timer '%i'. startedAt=%lu, finishAt=%llu", timer->id, timer->startedAt.value, timer->finishAt.value);
   ASSERT(timer->next == nullptr, "Timer.Next is not nullptr");
   ASSERT(timer->prev == nullptr, "Timer.Prev is not nullptr");
 

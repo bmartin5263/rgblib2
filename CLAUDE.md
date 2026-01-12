@@ -17,3 +17,7 @@
 - Templates are found in `/templates`
   - Use them as reference when asked 
   - For example: When asked "Create logging subsystem" then `/templates/subsystem` will be your starting point for class and file structure
+
+## Scripts
+
+- Use `./scripts/update-cmake-sources.sh` whenever you need to add/remove source files from CMakeLists.txt

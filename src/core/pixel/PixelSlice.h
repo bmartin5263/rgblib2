@@ -5,22 +5,22 @@
 #ifndef RGBLIB_PIXELSLICE_H
 #define RGBLIB_PIXELSLICE_H
 
-#include "PixelList.h"
+#include "ContiguousPixelList.h"
 
 namespace rgb {
 
 struct Color;
-class PixelSlice final : public PixelList {
+class PixelSlice final : public ContiguousPixelList {
 public:
-  PixelSlice(Pixel* head, u16 size);
+  PixelSlice(Pixel* head, uint size);
 
-  auto getHead() -> Pixel* override;
-  auto getHead() const -> const Pixel* override;
-  auto getSize() const -> u16 override;
+  auto data() -> Pixel* override;
+  auto data() const -> const Pixel* override;
+  auto length() const -> uint override;
 
 private:
   Pixel* mHead;
-  u16 mSize;
+  uint mSize;
 
 };
 

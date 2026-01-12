@@ -22,7 +22,7 @@ auto TrailingEffect::update() -> void {
 }
 
 auto TrailingEffect::draw(PixelList& chain) -> void {
-  auto chainLength = chain.getSize();
+  auto chainLength = chain.length();
   auto trailLength = static_cast<u16>(chainLength * trailRatio);
   auto now = Clock::Now();
 

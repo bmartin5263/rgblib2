@@ -29,11 +29,11 @@ public:
   template<class T>
   using atomic = std::atomic<T>;
 
-  static constexpr auto DISCONNECT_TIMEOUT = Duration::Seconds(5);
+  static constexpr auto DISCONNECT_TIMEOUT = Duration::Seconds(2);
 
   auto setTimeout(Duration timeout) -> void;
   auto update() -> void;
-  auto connect(PinNumber rx = PinNumber{44}, PinNumber tx = PinNumber{43}) -> bool;
+  auto connect(PinNumber rx, PinNumber tx) -> bool;
   auto disconnect() -> void;
   auto setLowPowerMode(bool value) -> void;
 
@@ -80,11 +80,11 @@ private:
     }
     else {
       if (Clock::Now().timeSince(mLastResponse) >= DISCONNECT_TIMEOUT) {
-#if RGB_DEBUG
-        FAIL("Disconnected OBD2", Color::MAGENTA(.01f));
-#else
-        ERROR("Disconnected OBD2");
-#endif
+//#if RGB_DEBUG
+//        FAIL("Disconnected OBD2", Color::MAGENTA(.01f));
+//#else
+//        ERROR("Disconnected OBD2");
+//#endif
         disconnect();
       }
     }

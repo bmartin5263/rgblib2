@@ -9,10 +9,11 @@ idf_component_register(
         "../car/OBD.h"
         "../car/Vehicle.cpp"
         "../car/Vehicle.h"
-        "../car/VehicleApplication.cpp"
         "../car/VehicleApplication.h"
         "../car/VehicleApplicationBuilder.h"
 
+        "../core/Application.cpp"
+        "../core/Application.h"
         "../core/Assertions.h"
         "../core/Brightness.cpp"
         "../core/Brightness.h"
@@ -41,8 +42,8 @@ idf_component_register(
         "../core/Types.h"
         "../core/Util.h"
         "../core/event/EventBus.h"
-        "../core/event/EventConcept.h"
         "../core/event/EventType.h"
+        "../core/event/SystemEvents.h"
         "../core/led/LEDCircuit.h"
         "../core/led/LEDCore.h"
         "../core/led/LEDMatrix.h"
@@ -55,12 +56,16 @@ idf_component_register(
         "../core/network/OTAImpl.h"
         "../core/network/priv/OTAESP32.cpp"
         "../core/network/priv/OTAESP32.h"
+        "../core/pixel/ContiguousPixelList.cpp"
+        "../core/pixel/ContiguousPixelList.h"
         "../core/pixel/Pixel.h"
         "../core/pixel/PixelGrid.h"
         "../core/pixel/PixelList.cpp"
         "../core/pixel/PixelList.h"
         "../core/pixel/PixelSlice.cpp"
         "../core/pixel/PixelSlice.h"
+        "../core/pixel/ReversePixelList.cpp"
+        "../core/pixel/ReversePixelList.h"
         "../core/priv/GPIOBase.h"
         "../core/priv/GPIOESP32.h"
         "../core/priv/GPIOImpl.h"
@@ -128,6 +133,7 @@ idf_component_register(
         "../core/time"
         "../effect"
         "../home"
+        "../main"
         "../home/hub"
         "../home/node"
 
@@ -135,7 +141,6 @@ idf_component_register(
         "../core/network/priv"
         "../core/priv"
 )
-
 
 target_compile_definitions(${COMPONENT_LIB} PUBLIC
         RGB_DEBUG

@@ -1,2 +1,4 @@
 # sdkconfig.defaults
 CONFIG_FREERTOS_HZ=1000
+CONFIG_ESP_TASK_WDT_EN=y  # Detects stuck tasks
+CONFIG_ESP_INT_WDT=y      # Detects stuck ISRs

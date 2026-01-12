@@ -12,8 +12,8 @@ namespace rgb {
 
 struct FillEffectShaderParameters {
   Timestamp now;
-  u16 length;
-  u16 position;
+  uint length;
+  uint position;
 
   [[nodiscard]] constexpr normal relativePosition() const {
     return static_cast<float>(position) / static_cast<float>(length);

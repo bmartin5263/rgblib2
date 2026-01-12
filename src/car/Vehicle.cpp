@@ -7,6 +7,8 @@
 #include "Clock.h"
 #include "Assertions.h"
 #include "Util.h"
+#include "Application.h"
+#include "LEDs.h"
 
 namespace rgb {
 
@@ -15,18 +17,19 @@ auto OBDDestroyer::operator()(COBD& c) const noexcept -> void {
 }
 
 auto Vehicle::connect(PinNumber rx, PinNumber tx) -> bool {
+  debugLed[0] = Color::RED();
   auto lock = std::unique_lock { mu };
   if (obdHandle->getState() == OBD_STATES::OBD_CONNECTED) {
-    INFO("Vehicle already connected");
     mConnected = true;
     return true;
   }
 
-  INFO("Connecting");
+  INFO("Vehicle Connecting");
 
   obdHandle.reset({});
   mConnected = false;
 
+  debugLed[0] = Color::ORANGE();
   if (!obdHandle->begin(rx.value, tx.value)) {
     ERROR("Vehicle begin() failed");
 //    FAIL("Vehicle begin() failed", Color::MAGENTA(.01f));
@@ -39,10 +42,14 @@ auto Vehicle::connect(PinNumber rx, PinNumber tx) -> bool {
     return false;
   }
 
+//  debugLed[0] = Color::PURPLE();
+
   INFO("Vehicle ready");
 //  digitalWrite(rgb::config::LED_VEHICLE_CONNECTED, LOW); TODO
   mConnected = true;
   mLastResponse = Clock::Now();
+
+  Application::instance->publishSystemEvent(OBDIIConnected{});
 
   return true;
 }
@@ -50,8 +57,8 @@ auto Vehicle::connect(PinNumber rx, PinNumber tx) -> bool {
 auto Vehicle::disconnect() -> void {
   auto lock = std::unique_lock { mu };
   obdHandle.reset({});
-//  digitalWrite(rgb::config::LED_VEHICLE_CONNECTED, HIGH); TODO
   mConnected = false;
+  Application::instance->publishSystemEvent(OBDIIDisconnected{});
 }
 
 auto Vehicle::update() -> void {

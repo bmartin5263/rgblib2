@@ -24,12 +24,12 @@ private:
   Pixel pixels[N];
   led_strip_handle_t leds;
   int offset;
-  pin_num pin;
+  uint pin;
   bool reversed;
   bool started;
 
 public:
-  constexpr explicit LEDMatrix(pin_num pin, u16 offset = 0):
+  constexpr explicit LEDMatrix(uint pin, u16 offset = 0):
   pixels{}, leds{}, offset{offset}, pin{pin}, reversed{false}, started{false}
   {
   }
@@ -64,15 +64,15 @@ public:
     started = true;
   }
 
-  auto getHead() -> Pixel* override {
+  auto data() -> Pixel* override {
     return pixels;
   }
 
-  auto getHead() const -> const Pixel* override {
+  auto data() const -> const Pixel* override {
     return pixels;
   }
 
-  auto getSize() const -> u16 override {
+  auto length() const -> u16 override {
     return N;
   }
 
@@ -148,15 +148,15 @@ public:
     ASSERT(point.y >= 0, "Pixel.Y is negative");
     ASSERT(point.x < COLUMNS, "Pixel.X is out of bounds");
     ASSERT(point.y < ROWS, "Pixel.Y is out of bounds");
-    return getHead() + ((point.y * COLUMNS) + point.x);
+    return data() + ((point.y * COLUMNS) + point.x);
   }
 
   auto set(Point point, const Color& color) -> void override {
-    *(getHead() + ((point.y * COLUMNS) + point.x)) = color;
+    *(data() + ((point.y * COLUMNS) + point.x)) = color;
   }
 
   auto operator[](uint column, uint row) -> Color& override {
-    return *(getHead() + ((row * COLUMNS) + column));
+    return *(data() + ((row * COLUMNS) + column));
   }
 };
 

@@ -5,7 +5,6 @@
 #ifndef RGBLIB_EVENTBUS_H
 #define RGBLIB_EVENTBUS_H
 
-#include "EventConcept.h"
 #include "EventType.h"
 
 namespace rgb {
