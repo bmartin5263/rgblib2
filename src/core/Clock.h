@@ -19,6 +19,8 @@ public:
   template<class T>
   auto forever(const T& tickFunction) -> void;
 
+  auto printStats() -> void;
+
   static auto Now() -> Timestamp;
 
 private:
@@ -37,6 +39,9 @@ private:
 
 template<class T>
 auto Clock::forever(const T& tickFunction) -> void {
+  INFO("Tick rate: %d Hz\n", configTICK_RATE_HZ);
+  INFO("Tick period: %lu ms\n", portTICK_PERIOD_MS);
+
   auto xLastWakeTime = xTaskGetTickCount();
   auto xFrequency = pdMS_TO_TICKS(5); // 5ms = 200 FPS
 

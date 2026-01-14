@@ -6,55 +6,23 @@
 #define RGBLIB_VEHICLEAPPLICATION_H
 
 #include "Application.h"
-#include "VehicleApplicationBuilder.h"
+#include "VehicleApplicationConfigurer.h"
 #include "Clock.h"
 #include "Vehicle.h"
 #include "Timer.h"
 #include "LEDCircuit.h"
 #include "OTA.h"
-#include "LEDs.h"
+#include <mutex>
 
 namespace rgb {
 
-void updateVehicle(void* args) {
-  INFO("Update Vehicle Started");
-  auto vehicle = static_cast<Vehicle*>(args);
-  auto TX = PinNumber{42};
-  auto RX = PinNumber{41};
-  auto now = Clock::Now();
-
-  Timestamp connectAgain;
-  if (vehicle->connect(RX, TX)) {
-    connectAgain = Timestamp::Max();
-  }
-  else {
-    connectAgain = now + Duration::Seconds(1);
-  }
-  while (true) {
-    now = Clock::Now();
-    if (now >= connectAgain) {
-      if (vehicle->connect(RX, TX)) {
-        connectAgain = Timestamp::Max();
-      }
-      else {
-        connectAgain = now + Duration::Seconds(1);
-      }
-    }
-
-    vehicle->update();
-
-    if (!vehicle->isConnected() && connectAgain == Timestamp::Max()) {
-      connectAgain = now + Duration::Seconds(5);
-    }
-    vTaskDelay(pdMS_TO_TICKS(100));
-  }
-}
+void subtask(void* args);
 
 template<typename ...UserEvents>
 class VehicleApplication : public Application {
 public:
   using AnyEvent = Event<UserEvents...>;
-  using Builder = VehicleApplicationBuilder<UserEvents...>;
+  using Configurer = VehicleApplicationConfigurer<UserEvents...>;
 
   VehicleApplication() = default;
   virtual ~VehicleApplication() = default;
@@ -65,17 +33,20 @@ public:
 
   auto run() -> void;
   auto publishSystemEvent(const SystemEvent& event) -> void override;
+  auto on(size_t uid, Consumer<const SystemEvent&> action) -> void override;
+  auto getVehicle() -> Vehicle* override;
 
   static auto PublishEvent(const AnyEvent& event) -> void;
 
-protected:
-  virtual constexpr auto setup(Builder& setup) -> void = 0;
-  virtual auto update() -> void = 0;
-  virtual auto draw() -> void = 0;
   Vehicle vehicle{};
 
+protected:
+  virtual constexpr auto setup(Configurer& app) -> void = 0;
+  virtual auto update() -> void = 0;
+  virtual auto draw() -> void = 0;
+
 private:
-  auto buildApplication() -> void;
+  auto configureApplication() -> void;
   auto initialize() -> void;
   auto baseUpdate() -> void;
   auto baseDraw() -> void;
@@ -84,31 +55,27 @@ private:
   Clock clock{300};
   std::vector<LEDCircuit*> mLeds{};
   std::vector<Sensor*> mSensors{};
-  std::unordered_map<size_t, Consumer<const Event<UserEvents...>&>> mEventMap{};
+  std::unordered_map<uint, std::vector<std::function<void(const AnyEvent&)>>> mEventMap{};
+  mutable std::mutex mEventMutex{};
 };
+
+template<typename... UserEvents>
+auto VehicleApplication<UserEvents...>::getVehicle() -> Vehicle* {
+  return &vehicle;
+}
 
 template<typename ...UserEvents>
 auto VehicleApplication<UserEvents...>::run() -> void {
-  INFO("Tick rate: %d Hz\n", configTICK_RATE_HZ);
-  INFO("Tick period: %lu ms\n", portTICK_PERIOD_MS);
-  buildApplication();
+  configureApplication();
   initialize();
 
-  xTaskCreatePinnedToCore(
-    updateVehicle,
-    "UpdateVehicle",
-    8192,
-    &vehicle,
-    3,
-    nullptr,
-    1
-  );
+  xTaskCreatePinnedToCore(subtask, "Subtask", RGB_OTHER_CORE_STACK_SIZE, this, RGB_OTHER_CORE_PRIORITY, nullptr, 1);
 
   PublishEvent(WakeEvent{});
-  publishSystemEvent(WakeEvent{});
   INFO("Started Application");
 
   clock.forever([&](){
+    clock.printStats();
     baseUpdate();
     baseDraw();
   });
@@ -116,51 +83,36 @@ auto VehicleApplication<UserEvents...>::run() -> void {
 
 template<typename ...UserEvents>
 auto VehicleApplication<UserEvents...>::baseUpdate() -> void {
-//  OTA::Update();
   for (auto& sensor : mSensors) {
     sensor->doRead();
   }
-//  if constexpr (Wifi::Enabled()) { TODO
-//    Wifi::Update();
-//  }
-//  if constexpr (OTASupport::Enabled()) { TODO
-//    OTASupport::Update();
-//  }
-
   Timer::ProcessTimers();
   update();
 }
 
 template<typename ...UserEvents>
 auto VehicleApplication<UserEvents...>::baseDraw() -> void {
-  for (auto led : mLeds) {
-    if (led != &debugLed) {
-      led->reset();
-    }
-  }
+  std::for_each(std::begin(mLeds), std::end(mLeds), [](auto led){ led->reset(); });
   draw();
   Debug::Draw();
-  for (auto led : mLeds) {
-    led->display();
-  }
+  std::for_each(std::begin(mLeds), std::end(mLeds), [](auto led){ led->display(); });
 }
 
 template<typename ...UserEvents>
-auto VehicleApplication<UserEvents...>::buildApplication() -> void {
+auto VehicleApplication<UserEvents...>::configureApplication() -> void {
   instance = this;
-  auto appBuilder = VehicleApplicationBuilder<UserEvents...>{};
-  setup(appBuilder);
+  auto appConfig = VehicleApplicationConfigurer<UserEvents...>{};
+  setup(appConfig);
 
-  mLeds = std::move(appBuilder.mLeds);
-  mSensors = std::move(appBuilder.mSensors);
-  mEventMap = std::move(appBuilder.mEventMap);
+  mLeds = std::move(appConfig.mLeds);
+  mSensors = std::move(appConfig.mSensors);
+  mEventMap = std::move(appConfig.mEventMap);
 }
 
 template<typename ...UserEvents>
 auto VehicleApplication<UserEvents...>::initialize() -> void {
   std::for_each(std::begin(mLeds), std::end(mLeds), [](auto led){ led->start(); });
   std::for_each(std::begin(mSensors), std::end(mSensors), [](auto sensor){ sensor->doStart(); });
-  OTA::Start();
 }
 
 template<typename... UserEvents>
@@ -169,18 +121,92 @@ auto VehicleApplication<UserEvents...>::publishSystemEvent(const SystemEvent& sy
     return AnyEvent{e};
   }, systemEvent);
   auto uid = systemEvent.index();
-  if (mEventMap.contains(uid)) {
-    mEventMap[uid](event);
+
+  std::vector<Consumer<const AnyEvent&>> handlers;
+  {
+    std::lock_guard lock{mEventMutex};
+    if (mEventMap.contains(uid)) {
+      handlers = mEventMap[uid];
+    }
+  }
+
+  for (auto& handler : handlers) {
+    handler(event);
   }
 }
 
+template<typename... UserEvents>
+auto VehicleApplication<UserEvents...>::on(size_t uid, Consumer<const SystemEvent&> action) -> void {
+  std::lock_guard lock{mEventMutex};
+  mEventMap[uid].push_back([action](auto& anyEvent) {
+    if (auto systemEvent = narrow_variant<SystemEvent>(anyEvent)) {
+      action(systemEvent.value());
+    }
+  });
+}
+
 template<typename ...UserEvents>
-auto VehicleApplication<UserEvents...>::PublishEvent(const AnyEvent& anyEvent) -> void {
+auto VehicleApplication<UserEvents...>::PublishEvent(const AnyEvent& event) -> void {
   auto self = static_cast<VehicleApplication<UserEvents...>*>(Application::instance);
-  auto uid = anyEvent.index();
-  if (self->mEventMap.contains(uid)) {
-    self->mEventMap[uid](anyEvent);
+  auto uid = event.index();
+
+  std::vector<Consumer<const AnyEvent&>> handlers;
+  {
+    std::lock_guard lock{self->mEventMutex};
+    if (self->mEventMap.contains(uid)) {
+      handlers = self->mEventMap[uid];
+    }
   }
+
+  for (auto& handler : handlers) {
+    handler(event);
+  }
+}
+
+void connectVehicle(Vehicle* vehicle, Timestamp& connectAgain) {
+  auto TX = PinNumber{42};
+  auto RX = PinNumber{41};
+  if (vehicle->connect(RX, TX)) {
+    connectAgain = Timestamp::Max();
+  }
+  else {
+    connectAgain = Clock::Now() + Duration::Seconds(1);
+  }
+}
+
+void subtask(void* args) {
+  INFO("Subtask Started");
+  Clock clock{60};
+  Timer timer{};
+  TimerHandle connectVehicleHandle{};
+
+  auto app = static_cast<Application*>(args);
+  auto vehicle = app->getVehicle();
+
+  TimerFunction connectVehicle = [&](auto& context){
+    auto TX = PinNumber{42};
+    auto RX = PinNumber{41};
+    if (!vehicle->connect(RX, TX)) {
+      context.repeatIn = Duration::Seconds(1);
+    }
+  };
+  INFO("Timer = %p", &timer);
+  app->on<OBDIIDisconnected>([timer = &timer, connectVehicle](auto& event){
+    INFO("Attempting Reconnection Soon");
+    INFO("Timer = %p", timer);
+    timer->setTimeout(Duration::Seconds(10), connectVehicle);
+  });
+  timer.setImmediateTimeout(connectVehicle);
+
+  clock.forever([&](){
+    timer.processTimers();
+
+    if (vehicle->isConnected()) {
+      vehicle->update();
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(100));
+  });
 }
 
 }

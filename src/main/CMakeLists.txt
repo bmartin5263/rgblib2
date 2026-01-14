@@ -10,7 +10,7 @@ idf_component_register(
         "../car/Vehicle.cpp"
         "../car/Vehicle.h"
         "../car/VehicleApplication.h"
-        "../car/VehicleApplicationBuilder.h"
+        "../car/VehicleApplicationConfigurer.h"
 
         "../core/Application.cpp"
         "../core/Application.h"
@@ -64,6 +64,8 @@ idf_component_register(
         "../core/pixel/PixelList.h"
         "../core/pixel/PixelSlice.cpp"
         "../core/pixel/PixelSlice.h"
+        "../core/pixel/PixelStitch.cpp"
+        "../core/pixel/PixelStitch.h"
         "../core/pixel/ReversePixelList.cpp"
         "../core/pixel/ReversePixelList.h"
         "../core/priv/GPIOBase.h"
@@ -133,7 +135,6 @@ idf_component_register(
         "../core/time"
         "../effect"
         "../home"
-        "../main"
         "../home/hub"
         "../home/node"
 
@@ -142,9 +143,12 @@ idf_component_register(
         "../core/priv"
 )
 
+
 target_compile_definitions(${COMPONENT_LIB} PUBLIC
         RGB_DEBUG
         CONFIG_FREERTOS_HZ=1000
+        RGB_OTHER_CORE_STACK_SIZE=8192
+        RGB_OTHER_CORE_PRIORITY=3
 )
 target_compile_options(${COMPONENT_LIB} PRIVATE
         -Werror=switch

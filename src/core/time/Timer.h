@@ -29,27 +29,15 @@ public:
   static auto Count();
   static auto Instance() -> Timer&;
 
-private:
-  TimerNode nodes[TIMER_COUNT]{};
-  TimerNode* unusedHead{nullptr};
-  TimerNode* toAddHead{nullptr};
-  TimerNode* activeHead{nullptr};
-  uint nextHandleId{1};
-
+  auto setTimeout(Duration duration, const Runnable& function) -> TimerHandle;
   auto setTimeout(Duration duration, const TimerFunction& function) -> TimerHandle;
+  auto setImmediateTimeout(const Runnable& function) -> TimerHandle;
+  auto setImmediateTimeout(const TimerFunction& function) -> TimerHandle;
   auto continuouslyFor(Duration duration, const TimerFunction& function) -> TimerHandle;
   auto continuouslyWhile(const Predicate& function) -> TimerHandle;
+  auto count();
   auto cancel(TimerNode* node) -> void;
   auto processTimers() -> void;
-  auto executeTimer(TimerNode* node, Timestamp now) -> void;
-  auto nextTimerNode() -> TimerNode*;
-  auto enqueueForAdding(TimerNode* node) -> void;
-  auto processAdditions() -> void;
-  auto reclaimNodes() -> void;
-  auto count();
-  auto recycle(TimerNode* timer) -> void;
-  auto executeRegularTimer(TimerNode* timer, Timestamp now) -> bool;
-  auto executeContinuousTimer(TimerNode* timer, Timestamp now) -> bool;
 
   Timer();
   Timer(const Timer& rhs) = default;
@@ -57,6 +45,22 @@ private:
   Timer& operator=(const Timer& rhs) = default;
   Timer& operator=(Timer&& rhs) noexcept = default;
   ~Timer() = default;
+
+private:
+  TimerNode nodes[TIMER_COUNT]{};
+  TimerNode* unusedHead{nullptr};
+  TimerNode* toAddHead{nullptr};
+  TimerNode* activeHead{nullptr};
+  uint nextHandleId{1};
+
+  auto executeTimer(TimerNode* node, Timestamp now) -> void;
+  auto nextTimerNode() -> TimerNode*;
+  auto enqueueForAdding(TimerNode* node) -> void;
+  auto processAdditions() -> void;
+  auto reclaimNodes() -> void;
+  auto recycle(TimerNode* timer) -> void;
+  auto executeRegularTimer(TimerNode* timer, Timestamp now) -> bool;
+  auto executeContinuousTimer(TimerNode* timer, Timestamp now) -> bool;
 };
 
 }

@@ -11,7 +11,6 @@
 #include <cstdio>
 #include <cstring>
 #include <ctype.h>
-#include "LEDs.h"
 #include "Color.h"
 
 // ESP32 UART implementation
@@ -40,8 +39,6 @@ void ESP32UART::begin(unsigned long baud_rate, uint32_t config, int8_t rxPin, in
 
   // Install UART driver (with ring buffer)
   uart_driver_install(uart_num, 1024, 1024, 0, NULL, 0);
-
-  debugLed[0] = rgb::Color::YELLOW();
 
   initialized = true;
   INFO("UART Initialized");
@@ -388,14 +385,6 @@ byte COBD::begin(int8_t rxPin, int8_t txPin)
     OBDUART.begin(baudrates[n], UART_PARITY_DISABLE, rxPin, txPin);
     version = getVersion();
     INFO("UART Version %i", version);
-    if (version != 0) {
-      if (n == 0) {
-        debugLed[0] = rgb::Color::GREEN();
-      }
-      else {
-        debugLed[0] = rgb::Color::BLUE();
-      }
-    }
 	}
 	return version;
 }

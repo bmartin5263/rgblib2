@@ -52,5 +52,20 @@ auto PixelList::get(uint pixel) -> Pixel* {
   return const_cast<Pixel*>(std::as_const(*this).get(pixel));
 }
 
+auto PixelList::begin() -> PixelIterator {
+  return {this, 0};
+}
+
+auto PixelList::begin() const -> ConstPixelIterator {
+  return {const_cast<PixelList*>(this), 0};
+}
+
+auto PixelList::end() -> PixelIterator {
+  return {this, length()};
+}
+
+auto PixelList::end() const -> ConstPixelIterator {
+  return {const_cast<PixelList*>(this), length()};
+}
 
 }

@@ -28,20 +28,4 @@ auto ContiguousPixelList::get(uint pixel) const -> const Pixel* {
   return data() + pixel;
 }
 
-auto ContiguousPixelList::begin() -> Pixel* {
-  return data();
-}
-
-auto ContiguousPixelList::begin() const -> const Pixel* {
-  return data();
-}
-
-auto ContiguousPixelList::end() -> Pixel* {
-  return data() + length();
-}
-
-auto ContiguousPixelList::end() const -> const Pixel* {
-  return data() + length();
-}
-
 }

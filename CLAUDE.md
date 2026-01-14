@@ -14,6 +14,7 @@
 
 ## Code Generation
 
+- Use C++ standard library types over any implementation-defined types unless the implementation-defined offers necessary features
 - Templates are found in `/templates`
   - Use them as reference when asked 
   - For example: When asked "Create logging subsystem" then `/templates/subsystem` will be your starting point for class and file structure

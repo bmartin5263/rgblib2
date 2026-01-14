@@ -7,6 +7,7 @@
 
 #include <cstddef>
 #include <variant>
+#include <optional>
 #include "Types.h"
 #include "SystemEvents.h"
 
@@ -34,14 +35,26 @@ template<typename T, typename... Ts>
 struct EventIndex<T, std::variant<Ts...>> {
   static constexpr size_t value = []() {
     size_t i = 0;
-    ((!std::is_same_v<T, Ts> && (++i, true)) && ...);
+    (void)((!std::is_same_v<T, Ts> && (++i, true)) && ...);
     return i;
   }();
 };
 
-
 template<typename T, typename Variant>
 constexpr size_t EventIndex_v = EventIndex<T, Variant>::value;
+
+template<typename Target, typename Source>
+constexpr auto narrow_variant(const Source& source) -> std::optional<Target> {
+  return std::visit([](const auto& value) -> std::optional<Target> {
+    using T = std::decay_t<decltype(value)>;
+    if constexpr (std::is_constructible_v<Target, T>) {
+      return value;
+    } else {
+      return std::nullopt;
+    }
+  }, source);
+}
+
 
 using SystemEvent = EventVariant<
   NullEvent,

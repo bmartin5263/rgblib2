@@ -12,4 +12,11 @@ auto Clock::Now() -> Timestamp {
   return Timestamp{System::MicroTime()};
 }
 
+auto Clock::printStats() -> void {
+  auto elapsed = mTickStart - mLastFrameRateCheck;
+  if (elapsed > 1000) {
+    INFO("FPS: %llu", mLastFps);
+  }
+}
+
 }

@@ -42,7 +42,7 @@ Timer::Timer() {
 }
 
 auto Timer::SetTimeout(Duration duration, const Runnable& function) -> TimerHandle {
-  return Instance().setTimeout(duration, [=](const auto& unused){ function(); });
+  return Instance().setTimeout(duration, function);
 }
 
 auto Timer::ContinuouslyFor(Duration duration, const Runnable& function) -> TimerHandle {
@@ -62,11 +62,11 @@ auto Timer::SetTimeout(Duration duration, const TimerFunction& function) -> Time
 }
 
 auto Timer::SetImmediateTimeout(const Runnable& function) -> TimerHandle {
-  return Instance().setTimeout(Duration::Zero(), [=](const auto& unused){ function(); });
+  return Instance().setImmediateTimeout(function);
 }
 
 auto Timer::SetImmediateTimeout(const TimerFunction& function) -> TimerHandle {
-  return Instance().setTimeout(Duration::Zero(), function);
+  return Instance().setImmediateTimeout(function);
 }
 
 auto Timer::setTimeout(Duration duration, const TimerFunction& function) -> TimerHandle {
@@ -96,7 +96,7 @@ auto Timer::continuouslyWhile(const Predicate& function) -> TimerHandle {
   auto timer = nextTimerNode();
 
   timer->clean();
-  timer->timerFunction = [&](TimerContext& context){
+  timer->timerFunction = [function](TimerContext& context){
     auto doContinue = function();
     if (doContinue) {
       context.repeatIn = Duration::Zero();
@@ -271,7 +271,7 @@ auto Timer::recycle(TimerNode* timer) -> void {
 
 auto Timer::executeRegularTimer(TimerNode* timer, Timestamp now) -> bool {
   auto context = TimerContext{};
-  TRACE("Running Timer '%i'", timer->id);
+  INFO("Running Timer '%i'", timer->id);
   timer->timerFunction(context);
   if (context.repeatIn) {
     TRACE("Repeating Timer '%i'", timer->id);
@@ -296,6 +296,18 @@ auto Timer::executeContinuousTimer(TimerNode* timer, Timestamp now) -> bool {
   else {
     return true;
   }
+}
+
+auto Timer::setTimeout(Duration duration, const Runnable& function) -> TimerHandle {
+  return setTimeout(duration, [=](const auto& unused){ function(); });
+}
+
+auto Timer::setImmediateTimeout(const Runnable& function) -> TimerHandle {
+  return setTimeout(Duration::Zero(), [=](const auto& unused){ function(); });
+}
+
+auto Timer::setImmediateTimeout(const TimerFunction& function) -> TimerHandle {
+  return setTimeout(Duration::Zero(), function);
 }
 
 }

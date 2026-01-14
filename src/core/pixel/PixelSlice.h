@@ -9,8 +9,7 @@
 
 namespace rgb {
 
-struct Color;
-class PixelSlice final : public ContiguousPixelList {
+class PixelSlice : public ContiguousPixelList {
 public:
   PixelSlice(Pixel* head, uint size);
 

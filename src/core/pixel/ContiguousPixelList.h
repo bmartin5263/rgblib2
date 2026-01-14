@@ -17,11 +17,6 @@ public:
   auto slice(uint length) -> PixelSlice;
   auto slice(uint start, uint length) -> PixelSlice;
   auto get(uint pixel) const -> const Pixel* override;
-
-  auto begin() -> Pixel*;
-  auto begin() const -> const Pixel*;
-  auto end() -> Pixel*;
-  auto end() const -> const Pixel*;
 };
 
 

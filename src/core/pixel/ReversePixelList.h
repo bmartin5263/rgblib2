@@ -9,7 +9,7 @@
 
 namespace rgb {
 
-class ReversePixelList final : public PixelList {
+class ReversePixelList : public PixelList {
 public:
   explicit ReversePixelList(PixelList& source);
 

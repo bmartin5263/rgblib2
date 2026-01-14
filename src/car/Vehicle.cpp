@@ -8,7 +8,6 @@
 #include "Assertions.h"
 #include "Util.h"
 #include "Application.h"
-#include "LEDs.h"
 
 namespace rgb {
 
@@ -17,7 +16,6 @@ auto OBDDestroyer::operator()(COBD& c) const noexcept -> void {
 }
 
 auto Vehicle::connect(PinNumber rx, PinNumber tx) -> bool {
-  debugLed[0] = Color::RED();
   auto lock = std::unique_lock { mu };
   if (obdHandle->getState() == OBD_STATES::OBD_CONNECTED) {
     mConnected = true;
@@ -29,7 +27,6 @@ auto Vehicle::connect(PinNumber rx, PinNumber tx) -> bool {
   obdHandle.reset({});
   mConnected = false;
 
-  debugLed[0] = Color::ORANGE();
   if (!obdHandle->begin(rx.value, tx.value)) {
     ERROR("Vehicle begin() failed");
 //    FAIL("Vehicle begin() failed", Color::MAGENTA(.01f));
