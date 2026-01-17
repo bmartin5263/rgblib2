@@ -80,11 +80,6 @@ private:
     }
     else {
       if (Clock::Now().timeSince(mLastResponse) >= DISCONNECT_TIMEOUT) {
-//#if RGB_DEBUG
-//        FAIL("Disconnected OBD2", Color::MAGENTA(.01f));
-//#else
-//        ERROR("Disconnected OBD2");
-//#endif
         disconnect();
       }
     }

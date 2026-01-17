@@ -24,6 +24,8 @@ auto levelIncreaseHandle = TimerHandle{};
 auto level = 0;
 auto level2 = 0u;
 
+auto irRemote = IRRemote{PinNumber{8}};
+
 class LincolnApplication : public VehicleApplication<HighwayModeEntered, HighwayModeExited> {
 protected:
   constexpr auto setup(VehicleApplication::Configurer& app) -> void override {
@@ -32,6 +34,14 @@ protected:
      */
     app.addLEDs(ledStrip)
         .addLEDs(debugLed);
+
+    app.addSensor(irRemote);
+
+
+    app.on<WakeEvent>([](auto& event) {
+      // Do startup animations
+    });
+
 
     app.on<OBDIIConnected>([](auto& event){
       flag = true;
@@ -51,6 +61,28 @@ protected:
     });
     app.on<HighwayModeExited>([](auto& event){
 
+    });
+    app.on<IRButtonPressed>([](auto& event) {
+      switch (event.button) {
+        case IRButtonType::ONE: INFO("Button 1 pressed"); break;
+        case IRButtonType::TWO: INFO("Button 2 pressed"); break;
+        case IRButtonType::THREE: INFO("Button 3 pressed"); break;
+        case IRButtonType::FOUR: INFO("Button 4 pressed"); break;
+        case IRButtonType::FIVE: INFO("Button 5 pressed"); break;
+        case IRButtonType::SIX: INFO("Button 6 pressed"); break;
+        case IRButtonType::SEVEN: INFO("Button 7 pressed"); break;
+        case IRButtonType::EIGHT: INFO("Button 8 pressed"); break;
+        case IRButtonType::NINE: INFO("Button 9 pressed"); break;
+        case IRButtonType::ZERO: INFO("Button 0 pressed"); break;
+        case IRButtonType::STAR: INFO("Button * pressed"); break;
+        case IRButtonType::POUND: INFO("Button # pressed"); break;
+        case IRButtonType::UP: INFO("Button UP pressed"); break;
+        case IRButtonType::DOWN: INFO("Button DOWN pressed"); break;
+        case IRButtonType::LEFT: INFO("Button LEFT pressed"); break;
+        case IRButtonType::RIGHT: INFO("Button RIGHT pressed"); break;
+        case IRButtonType::OK: INFO("Button OK pressed"); break;
+        case IRButtonType::UNKNOWN: INFO("Unknown pressed"); break;
+      }
     });
   }
 

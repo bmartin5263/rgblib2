@@ -22,11 +22,11 @@ struct VehicleApplicationConfigurer {
   constexpr auto addSensor(Sensor& sensor) -> VehicleApplicationConfigurer&;
 
   template<typename T>
-  constexpr auto on(Consumer<const T&> action) -> VehicleApplicationConfigurer&;
+  constexpr auto on(std::move_only_function<void(const T&) const> action) -> VehicleApplicationConfigurer&;
 
   std::vector<LEDCircuit*> mLeds{};
   std::vector<Sensor*> mSensors{};
-  std::unordered_map<uint, std::vector<Consumer<const Event<UserEvents...>&>>> mEventMap{};
+  std::unordered_map<uint, std::vector<std::move_only_function<void(const Event<UserEvents...>&)>>> mEventMap{};
 };
 
 template<typename ...UserEvents>
@@ -43,9 +43,9 @@ constexpr auto VehicleApplicationConfigurer<UserEvents...>::addSensor(Sensor& se
 
 template<typename ...UserEvents>
 template<typename T>
-constexpr auto VehicleApplicationConfigurer<UserEvents...>::on(Consumer<const T&> action) -> VehicleApplicationConfigurer<UserEvents...>& {
+constexpr auto VehicleApplicationConfigurer<UserEvents...>::on(std::move_only_function<void(const T&) const> action) -> VehicleApplicationConfigurer<UserEvents...>& {
   auto index = EventIndex_v<T, Event<UserEvents...>>;
-  mEventMap[index].push_back([action](auto& e) {
+  mEventMap[index].push_back([action = std::move(action)](auto& e) {
     action(std::get<T>(e));
   });
   return *this;

@@ -17,11 +17,11 @@ public:
   Sensor& operator=(const Sensor& rhs) = default;
   Sensor& operator=(Sensor&& rhs) noexcept = default;
 
-  auto doStart() -> bool;
-  auto doRead() -> void;
+  auto start() -> bool;
+  auto read() -> void;
 protected:
-  virtual auto start() -> bool = 0;
-  virtual auto read() -> void = 0;
+  virtual auto doStart() -> bool = 0;
+  virtual auto doRead() -> void = 0;
 
 private:
 

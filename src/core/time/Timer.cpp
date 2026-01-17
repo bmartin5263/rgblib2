@@ -271,7 +271,7 @@ auto Timer::recycle(TimerNode* timer) -> void {
 
 auto Timer::executeRegularTimer(TimerNode* timer, Timestamp now) -> bool {
   auto context = TimerContext{};
-  INFO("Running Timer '%i'", timer->id);
+  TRACE("Running Timer '%i'", timer->id);
   timer->timerFunction(context);
   if (context.repeatIn) {
     TRACE("Repeating Timer '%i'", timer->id);

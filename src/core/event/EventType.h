@@ -63,7 +63,8 @@ using SystemEvent = EventVariant<
   OBDIIConnected,
   OBDIIDisconnected,
   CarEngineStarted,
-  CarEngineStopped
+  CarEngineStopped,
+  IRButtonPressed
 >;
 
 template<typename ...UserEvents>

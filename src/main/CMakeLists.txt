@@ -59,6 +59,7 @@ idf_component_register(
         "../core/pixel/ContiguousPixelList.cpp"
         "../core/pixel/ContiguousPixelList.h"
         "../core/pixel/Pixel.h"
+        "../core/pixel/PixelGrid.cpp"
         "../core/pixel/PixelGrid.h"
         "../core/pixel/PixelList.cpp"
         "../core/pixel/PixelList.h"

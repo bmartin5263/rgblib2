@@ -18,8 +18,14 @@ namespace rgb {
 
 void subtask(void* args);
 
+struct SubtaskSharedState {
+  Vehicle* vehicle;
+};
+
 template<typename ...UserEvents>
 class VehicleApplication : public Application {
+  using Application::on;
+
 public:
   using AnyEvent = Event<UserEvents...>;
   using Configurer = VehicleApplicationConfigurer<UserEvents...>;
@@ -55,8 +61,8 @@ private:
   Clock clock{300};
   std::vector<LEDCircuit*> mLeds{};
   std::vector<Sensor*> mSensors{};
-  std::unordered_map<uint, std::vector<std::function<void(const AnyEvent&)>>> mEventMap{};
-  mutable std::mutex mEventMutex{};
+  std::unordered_map<uint, std::vector<std::move_only_function<void(const AnyEvent&)>>> mEventMap{};
+  QueueHandle_t commandQueue;
 };
 
 template<typename... UserEvents>
@@ -71,7 +77,6 @@ auto VehicleApplication<UserEvents...>::run() -> void {
 
   xTaskCreatePinnedToCore(subtask, "Subtask", RGB_OTHER_CORE_STACK_SIZE, this, RGB_OTHER_CORE_PRIORITY, nullptr, 1);
 
-  PublishEvent(WakeEvent{});
   INFO("Started Application");
 
   clock.forever([&](){
@@ -82,9 +87,19 @@ auto VehicleApplication<UserEvents...>::run() -> void {
 }
 
 template<typename ...UserEvents>
+auto VehicleApplication<UserEvents...>::initialize() -> void {
+  on<OBDIIDisconnected>([](auto& e){
+    // TODO - go to sleep
+  });
+
+  std::for_each(std::begin(mLeds), std::end(mLeds), [](auto led){ led->start(); });
+  std::for_each(std::begin(mSensors), std::end(mSensors), [](auto sensor){ sensor->start(); });
+}
+
+template<typename ...UserEvents>
 auto VehicleApplication<UserEvents...>::baseUpdate() -> void {
   for (auto& sensor : mSensors) {
-    sensor->doRead();
+    sensor->read();
   }
   Timer::ProcessTimers();
   update();
@@ -109,35 +124,21 @@ auto VehicleApplication<UserEvents...>::configureApplication() -> void {
   mEventMap = std::move(appConfig.mEventMap);
 }
 
-template<typename ...UserEvents>
-auto VehicleApplication<UserEvents...>::initialize() -> void {
-  std::for_each(std::begin(mLeds), std::end(mLeds), [](auto led){ led->start(); });
-  std::for_each(std::begin(mSensors), std::end(mSensors), [](auto sensor){ sensor->doStart(); });
-}
-
 template<typename... UserEvents>
 auto VehicleApplication<UserEvents...>::publishSystemEvent(const SystemEvent& systemEvent) -> void {
   auto event = std::visit([](auto&& e) {
     return AnyEvent{e};
   }, systemEvent);
   auto uid = systemEvent.index();
-
-  std::vector<Consumer<const AnyEvent&>> handlers;
-  {
-    std::lock_guard lock{mEventMutex};
-    if (mEventMap.contains(uid)) {
-      handlers = mEventMap[uid];
+  if (mEventMap.contains(uid)) {
+    for (auto& handler : mEventMap[uid]) {
+      handler(event);
     }
-  }
-
-  for (auto& handler : handlers) {
-    handler(event);
   }
 }
 
 template<typename... UserEvents>
 auto VehicleApplication<UserEvents...>::on(size_t uid, Consumer<const SystemEvent&> action) -> void {
-  std::lock_guard lock{mEventMutex};
   mEventMap[uid].push_back([action](auto& anyEvent) {
     if (auto systemEvent = narrow_variant<SystemEvent>(anyEvent)) {
       action(systemEvent.value());
@@ -149,17 +150,10 @@ template<typename ...UserEvents>
 auto VehicleApplication<UserEvents...>::PublishEvent(const AnyEvent& event) -> void {
   auto self = static_cast<VehicleApplication<UserEvents...>*>(Application::instance);
   auto uid = event.index();
-
-  std::vector<Consumer<const AnyEvent&>> handlers;
-  {
-    std::lock_guard lock{self->mEventMutex};
-    if (self->mEventMap.contains(uid)) {
-      handlers = self->mEventMap[uid];
+  if (self->mEventMap.contains(uid)) {
+    for (auto& handler : self->mEventMap[uid]) {
+      handler(event);
     }
-  }
-
-  for (auto& handler : handlers) {
-    handler(event);
   }
 }
 
@@ -176,37 +170,22 @@ void connectVehicle(Vehicle* vehicle, Timestamp& connectAgain) {
 
 void subtask(void* args) {
   INFO("Subtask Started");
-  Clock clock{60};
-  Timer timer{};
-  TimerHandle connectVehicleHandle{};
-
   auto app = static_cast<Application*>(args);
   auto vehicle = app->getVehicle();
 
-  TimerFunction connectVehicle = [&](auto& context){
-    auto TX = PinNumber{42};
-    auto RX = PinNumber{41};
-    if (!vehicle->connect(RX, TX)) {
-      context.repeatIn = Duration::Seconds(1);
-    }
-  };
-  INFO("Timer = %p", &timer);
-  app->on<OBDIIDisconnected>([timer = &timer, connectVehicle](auto& event){
-    INFO("Attempting Reconnection Soon");
-    INFO("Timer = %p", timer);
-    timer->setTimeout(Duration::Seconds(10), connectVehicle);
-  });
-  timer.setImmediateTimeout(connectVehicle);
-
-  clock.forever([&](){
-    timer.processTimers();
+  INFO("Starting Subtask");
+  vehicle->connect(PinNumber{41}, PinNumber{42});
+  while (true) {
 
     if (vehicle->isConnected()) {
       vehicle->update();
     }
+    else {
+      vehicle->connect(PinNumber{41}, PinNumber{42});
+    }
 
     vTaskDelay(pdMS_TO_TICKS(100));
-  });
+  }
 }
 
 }

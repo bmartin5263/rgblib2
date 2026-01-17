@@ -6,17 +6,22 @@
 #define RGBLIB_PIXELGRID_H
 
 #include "PixelList.h"
+#include "Point.h"
 
 namespace rgb {
 
-struct Point;
 class PixelGrid : public PixelList {
 public:
-  [[nodiscard]]
-  virtual auto get(Point point) -> Pixel* = 0;
-  [[nodiscard]]
-  virtual auto operator[](uint column, uint row) -> Pixel& = 0;
-  virtual auto set(Point point, const Color& color) -> void = 0;
+  using PixelList::get;
+  [[nodiscard]] virtual auto get(uint column, uint row) const -> const Pixel* = 0;
+
+  [[nodiscard]] auto get(Point point) -> Pixel*;
+  [[nodiscard]] auto get(Point point) const -> const Pixel*;
+  [[nodiscard]] auto get(uint column, uint row) -> Pixel*;
+  [[nodiscard]] auto operator[](uint column, uint row) -> Pixel&;
+  [[nodiscard]] auto operator[](uint column, uint row) const -> const Pixel&;
+  [[nodiscard]] auto operator[](Point point) -> Pixel&;
+  [[nodiscard]] auto operator[](Point point) const -> const Pixel&;
 };
 
 }

@@ -6,12 +6,12 @@
 
 namespace rgb {
 
-auto Sensor::doRead() -> void {
-  read();
+auto Sensor::read() -> void {
+  doRead();
 }
 
-auto Sensor::doStart() -> bool {
-  return start();
+auto Sensor::start() -> bool {
+  return doStart();
 }
 
 }
