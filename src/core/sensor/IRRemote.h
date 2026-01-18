@@ -42,12 +42,12 @@ private:
   static constexpr uint NEC_DECODE_MARGIN = 200;
   static constexpr rmt_receive_config_t rxConfig = rmt_receive_config_t{
     .signal_range_min_ns = 1250,
-    .signal_range_max_ns = 12'000'000,
+    .signal_range_max_ns = 18'000'000,
   };
 
   PinNumber pin;
   rmt_channel_handle_t rxChannel = nullptr;
-  rmt_symbol_word_t rxBuffer[256] = {};
+  rmt_symbol_word_t rxBuffer[512] = {};
   QueueHandle_t rxQueue = nullptr;
 };
 

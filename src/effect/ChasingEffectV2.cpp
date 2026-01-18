@@ -7,17 +7,7 @@
 
 namespace rgb {
 
-auto ChasingEffectV2::reset() -> void {
-}
-
-auto ChasingEffectV2::update() -> void {
-
-}
-
-auto ChasingEffectV2::step() -> void {
-}
-
-auto ChasingEffectV2::draw(PixelList& pixels) -> void {
+auto ChasingEffectV2::draw(Timestamp now, PixelList& pixels) -> void {
   auto pixelLength = pixels.length();
 
   uint actualTrailLength;
@@ -29,7 +19,7 @@ auto ChasingEffectV2::draw(PixelList& pixels) -> void {
   }
 
   auto params = ShaderParameters {
-    .now = Clock::Now(),
+    .now = now,
     .duration = progression.duration,
     .trailLength = actualTrailLength,
     .pixelPosition = 0,
@@ -45,7 +35,7 @@ auto ChasingEffectV2::draw(PixelList& pixels) -> void {
     duration = progression.duration;
   }
 
-  auto headPercent = Clock::Now().percentOf(Timestamp{duration.value});
+  auto headPercent = now.percentOf(Timestamp{duration.value});
   auto effectPosition = static_cast<uint>(static_cast<float>(pixelLength) * headPercent); // round down
 
   if (buildup) {
@@ -69,12 +59,6 @@ auto ChasingEffectV2::draw(PixelList& pixels) -> void {
       params.pixelPosition = pixelPosition;
       pixels.set(pixelPosition, shader(pixels.get(pixelPosition), params));
     }
-  }
-}
-
-auto ChasingEffectV2::draw(Iterable<PixelList*> pixelLists) -> void {
-  for (auto list : pixelLists) {
-    draw(*list);
   }
 }
 

@@ -61,9 +61,11 @@ auto irRemote = IRRemote{PinNumber{4}};
 auto chasingEffect = ChasingEffect{};
 auto ringChasingEffect = ChasingEffect{};
 auto reverseRingChasingEffect = ChasingEffect{};
-auto ChasingEffectV2 = ChasingEffectV2{};
+auto chasingEffectV2 = ChasingEffectV2{};
 
 auto firstUpdate = true;
+
+EffectHandle e1;
 
 class LincolnApplication : public VehicleApplication<HighwayModeEntered, HighwayModeExited> {
 protected:
@@ -105,6 +107,7 @@ protected:
 
     app.addSensor(irRemote);
 
+    e1 = Effects::Start(chasingEffect, longLedStrip);
 
     app.on<WakeEvent>([](auto& event) {
 //      chasingEffect.reset();
@@ -133,8 +136,14 @@ protected:
     });
     app.on<IRButtonPressed>([](auto& event) {
       switch (event.button) {
-        case IRButtonType::ONE: INFO("Button 1 pressed"); break;
-        case IRButtonType::TWO: INFO("Button 2 pressed"); break;
+        case IRButtonType::ONE:
+          e1.stop();
+          INFO("Button 1 pressed");
+          break;
+        case IRButtonType::TWO:
+          e1 = Effects::Start(chasingEffect, longLedStrip);
+          INFO("Button 2 pressed");
+          break;
         case IRButtonType::THREE: INFO("Button 3 pressed"); break;
         case IRButtonType::FOUR: INFO("Button 4 pressed"); break;
         case IRButtonType::FIVE: INFO("Button 5 pressed"); break;
@@ -159,29 +168,15 @@ protected:
         case IRButtonType::RIGHT: INFO("Button RIGHT pressed"); break;
         case IRButtonType::OK:
           INFO("Button OK pressed");
-          ringChasingEffect.reset();
-          reverseRingChasingEffect.reset();
+          ringChasingEffect.reset(Clock::Now());
+          reverseRingChasingEffect.reset(Clock::Now());
           break;
         case IRButtonType::UNKNOWN: INFO("Unknown pressed"); break;
       }
     });
   }
   auto update() -> void override {
-    if (firstUpdate) {
-      chasingEffect.reset();
-      ringChasingEffect.reset();
-      reverseRingChasingEffect.reset();
-      firstUpdate = false;
-    }
-//    INFO("didUpdate");
-//    if (flag && level < ledStrip.length()) {
-//      ++level;
-//    }
-    level2 += 1;
-    level2 = level2 % stitch.length();
-    chasingEffect.update();
-    ringChasingEffect.update();
-    reverseRingChasingEffect.update();
+
   }
 
   float rpm = 0;
@@ -212,15 +207,15 @@ protected:
 //    chasingEffect.draw(shortLedStrip);
 
     // Constant Time
-    chasingEffectV2.progression = ChaseProgression::ConstantSpeed(Duration::Seconds(1));
-    chasingEffectV2.draw(longLedStrip);
-    chasingEffectV2.draw(shortLedStrip);
+//    chasingEffectV2.progression = ChaseProgression::ConstantSpeed(Duration::Milliseconds(100));
+//    chasingEffectV2.draw(Clock::Now(), longLedStrip);
+//    chasingEffectV2.draw(Clock::Now(), shortLedStrip);
 
 //    ring.fill(Color::HslToRgb(rpm / 7000) * .3f, level);
-    ringChasingEffect.shift = 0;
-    ringChasingEffect.draw(ringExt);
-    ringChasingEffect.shift = 6;
-    ringChasingEffect.draw(ringExt);
+//    ringChasingEffect.shift = 0;
+//    ringChasingEffect.draw(Clock::Now(), ringExt);
+//    ringChasingEffect.shift = 6;
+//    ringChasingEffect.draw(Clock::Now(), ringExt);
   }
 };
 

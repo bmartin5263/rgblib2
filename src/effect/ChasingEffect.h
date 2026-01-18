@@ -10,6 +10,7 @@
 #include "PixelList.h"
 #include "Iterable.h"
 #include "Length.h"
+#include "Effect.h"
 
 namespace rgb {
 
@@ -22,7 +23,7 @@ namespace rgb {
  *   StepBased   - The trail moves at the same speed no matter the length of the LED strip
  *   ChainBased* - The trail moves at a speed that depends on how long the effect should take
  */
-class ChasingEffect {
+class ChasingEffect : public Effect {
 public:
   struct ShaderParameters {
     Timestamp now{};
@@ -38,19 +39,16 @@ public:
   };
 
   // Reset the state of the effect
-  auto reset() -> void;
+  auto reset(Timestamp now) -> void override;
 
   // Update the effect (call every frame)
-  auto update() -> void;
+  auto update(Timestamp now) -> void override;
 
   // Step the effect by a single frame
   auto step() -> void;
 
   // Draw the effect onto a pixel buffer
-  auto draw(PixelList& pixels) -> void;
-
-  // Draw the effect onto many pixel buffers (should be more efficient than calling draw() many times)
-  auto draw(Iterable<PixelList*> pixelLists) -> void;
+  auto draw(Timestamp now, PixelList& pixels) -> void override;
 
   // How to color the pixels lit up by this effect
   Shader shader{DefaultShader};

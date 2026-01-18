@@ -7,15 +7,15 @@
 
 namespace rgb {
 
-auto ChasingEffect::reset() -> void {
+auto ChasingEffect::reset(Timestamp now) -> void {
   effectPosition = 0;
-  nextMoveTime = Clock::Now() + delay;
+  nextMoveTime = now + delay;
 }
 
-auto ChasingEffect::update() -> void {
-  if (Clock::Now() >= nextMoveTime) {
+auto ChasingEffect::update(Timestamp now) -> void {
+  if (now >= nextMoveTime) {
     step();
-    nextMoveTime = Clock::Now() + delay;
+    nextMoveTime = now + delay;
   }
 }
 
@@ -23,7 +23,7 @@ auto ChasingEffect::step() -> void {
   effectPosition += 1;
 }
 
-auto ChasingEffect::draw(PixelList& pixels) -> void {
+auto ChasingEffect::draw(Timestamp now, PixelList& pixels) -> void {
   auto pixelLength = pixels.length();
 
   uint actualTrailLength;
@@ -35,7 +35,7 @@ auto ChasingEffect::draw(PixelList& pixels) -> void {
   }
 
   auto params = ShaderParameters {
-    .now = Clock::Now(),
+    .now = now,
     .delay = delay,
     .trailLength = actualTrailLength,
     .pixelPosition = 0,
@@ -63,12 +63,6 @@ auto ChasingEffect::draw(PixelList& pixels) -> void {
       params.pixelPosition = pixelPosition;
       pixels.set(pixelPosition, shader(pixels.get(pixelPosition), params));
     }
-  }
-}
-
-auto ChasingEffect::draw(Iterable<PixelList*> pixelLists) -> void {
-  for (auto list : pixelLists) {
-    draw(*list);
   }
 }
 

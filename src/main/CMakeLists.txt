@@ -106,10 +106,17 @@ idf_component_register(
         "../core/time/TimerHandle.h"
         "../core/time/TimerNode.h"
 
+        "../effect/ChaseProgression.h"
         "../effect/ChasingEffect.cpp"
         "../effect/ChasingEffect.h"
         "../effect/ChasingEffectV2.cpp"
         "../effect/ChasingEffectV2.h"
+        "../effect/Effect.h"
+        "../effect/EffectHandle.cpp"
+        "../effect/EffectHandle.h"
+        "../effect/EffectNode.h"
+        "../effect/Effects.cpp"
+        "../effect/Effects.h"
         "../effect/FillEffect.cpp"
         "../effect/FillEffect.h"
         "../effect/Length.h"
@@ -144,6 +151,7 @@ idf_component_register(
         "../core/network/priv"
         "../core/priv"
 )
+
 
 
 

@@ -10,6 +10,7 @@
 #include "Clock.h"
 #include "Vehicle.h"
 #include "Timer.h"
+#include "Effects.h"
 #include "LEDCircuit.h"
 #include "OTA.h"
 #include <mutex>
@@ -73,10 +74,10 @@ auto VehicleApplication<UserEvents...>::getVehicle() -> Vehicle* {
 template<typename ...UserEvents>
 auto VehicleApplication<UserEvents...>::run() -> void {
   configureApplication();
-  initialize();
 
   xTaskCreatePinnedToCore(subtask, "Subtask", RGB_OTHER_CORE_STACK_SIZE, this, RGB_OTHER_CORE_PRIORITY, nullptr, 1);
 
+  initialize();
   publishSystemEvent(WakeEvent{Clock::Now()});
   INFO("Started Application");
 
@@ -103,12 +104,14 @@ auto VehicleApplication<UserEvents...>::baseUpdate() -> void {
     sensor->read();
   }
   Timer::ProcessTimers();
+  Effects::Update();
   update();
 }
 
 template<typename ...UserEvents>
 auto VehicleApplication<UserEvents...>::baseDraw() -> void {
   std::for_each(std::begin(mLeds), std::end(mLeds), [](auto led){ led->reset(); });
+  Effects::Draw();
   draw();
   Debug::Draw();
   std::for_each(std::begin(mLeds), std::end(mLeds), [](auto led){ led->display(); });
