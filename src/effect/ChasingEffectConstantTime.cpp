@@ -2,28 +2,22 @@
 // Created by Brandon on 8/17/25.
 //
 
-#include "ChasingEffect.h"
+#include "ChasingEffectConstantTime.h"
 #include "Clock.h"
 
 namespace rgb {
 
-auto ChasingEffect::reset() -> void {
-  effectPosition = 0;
-  nextMoveTime = Clock::Now() + delay;
+auto ChasingEffectConstantTime::reset() -> void {
 }
 
-auto ChasingEffect::update() -> void {
-  if (Clock::Now() >= nextMoveTime) {
-    step();
-    nextMoveTime = Clock::Now() + delay;
-  }
+auto ChasingEffectConstantTime::update() -> void {
+
 }
 
-auto ChasingEffect::step() -> void {
-  effectPosition += 1;
+auto ChasingEffectConstantTime::step() -> void {
 }
 
-auto ChasingEffect::draw(PixelList& pixels) -> void {
+auto ChasingEffectConstantTime::draw(PixelList& pixels) -> void {
   auto pixelLength = pixels.length();
 
   uint actualTrailLength;
@@ -36,12 +30,16 @@ auto ChasingEffect::draw(PixelList& pixels) -> void {
 
   auto params = ShaderParameters {
     .now = Clock::Now(),
-    .delay = delay,
+    .duration = duration,
     .trailLength = actualTrailLength,
     .pixelPosition = 0,
     .trailPosition = 0,
     .positionRatio = 0.0f,
   };
+
+  auto headPercent = Clock::Now().percentOf(Timestamp{duration.value});
+  auto effectPosition = static_cast<uint>(static_cast<float>(pixelLength) * headPercent); // round down
+
   if (buildup) {
     for (auto trailPosition = 0; trailPosition < actualTrailLength; ++trailPosition) {
       if (trailPosition > effectPosition) {
@@ -66,7 +64,7 @@ auto ChasingEffect::draw(PixelList& pixels) -> void {
   }
 }
 
-auto ChasingEffect::draw(Iterable<PixelList*> pixelLists) -> void {
+auto ChasingEffectConstantTime::draw(Iterable<PixelList*> pixelLists) -> void {
   for (auto list : pixelLists) {
     draw(*list);
   }

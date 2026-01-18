@@ -108,6 +108,8 @@ idf_component_register(
 
         "../effect/ChasingEffect.cpp"
         "../effect/ChasingEffect.h"
+        "../effect/ChasingEffectConstantTime.cpp"
+        "../effect/ChasingEffectConstantTime.h"
         "../effect/FillEffect.cpp"
         "../effect/FillEffect.h"
         "../effect/Length.h"
@@ -142,6 +144,7 @@ idf_component_register(
         "../core/network/priv"
         "../core/priv"
 )
+
 
 
 

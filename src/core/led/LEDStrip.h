@@ -43,6 +43,11 @@ public:
   {
   }
 
+  LEDStrip(const LEDStrip&) = delete;
+  LEDStrip& operator=(const LEDStrip&) = delete;
+  LEDStrip(LEDStrip&&) = default;
+  LEDStrip& operator=(LEDStrip&&) = default;
+
   auto start() -> void override {
     if (started) {
       return;

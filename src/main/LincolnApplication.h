@@ -17,6 +17,7 @@
 #include "ChasingEffect.h"
 #include "DeadPixelList.h"
 #include "PixelSlice.h"
+#include "ChasingEffectConstantTime.h"
 
 using namespace rgb;
 
@@ -48,6 +49,9 @@ auto reverseBottomStrip = ReversePixelList{bottomStrip};
 auto tempStitch = PixelStitch{topStrip, reverseBottomStrip};
 auto stitch = PixelStitch{tempStitch, deadPixels50};
 
+// ConstantTime vs ConstantSpeed
+auto shortLedStrip = bottomStrip.slice(20);
+auto& longLedStrip = topStrip;
 
 auto level = 0;
 auto level2 = 0u;
@@ -57,6 +61,7 @@ auto irRemote = IRRemote{PinNumber{4}};
 auto chasingEffect = ChasingEffect{};
 auto ringChasingEffect = ChasingEffect{};
 auto reverseRingChasingEffect = ChasingEffect{};
+auto chasingEffectConstantTime = ChasingEffectConstantTime{};
 
 auto firstUpdate = true;
 
@@ -69,6 +74,13 @@ protected:
     };
     chasingEffect.trailLength = Length::Ratio(.2f);
     chasingEffect.buildup = true;
+
+    chasingEffectConstantTime.duration = Duration::Seconds(2);
+    chasingEffectConstantTime.shader = [](auto pixel, auto& params) {
+      return Color::HslToRgb(Clock::Now().percentOf(Duration::Seconds(5)));
+    };
+    chasingEffectConstantTime.trailLength = Length::Ratio(.2f);
+    chasingEffectConstantTime.buildup = true;
 
     ringChasingEffect.delay = Duration::Milliseconds(50);
     ringChasingEffect.shader = [](auto pixel, auto& params) {
@@ -190,10 +202,20 @@ protected:
 
 //    stitch[level2] = Color::FAKE_WHITE();
 
-    chasingEffect.draw(topRightExt);
-    chasingEffect.draw(topLeftReverseExt);
-    chasingEffect.draw(bottomLeftReverseExt);
-    chasingEffect.draw(bottomRightExt);
+//    chasingEffect.draw(topRightExt);
+//    chasingEffect.draw(topLeftReverseExt);
+//    chasingEffect.draw(bottomLeftReverseExt);
+//    chasingEffect.draw(bottomRightExt);
+
+    // Constant Speed
+//    chasingEffect.delay = Duration::Milliseconds(100);
+//    chasingEffect.draw(longLedStrip);
+//    chasingEffect.draw(shortLedStrip);
+
+    // Constant Time
+    chasingEffectConstantTime.duration = Duration::Seconds(2);
+    chasingEffectConstantTime.draw(longLedStrip);
+    chasingEffectConstantTime.draw(shortLedStrip);
 
 //    ring.fill(Color::HslToRgb(rpm / 7000) * .3f, level);
     ringChasingEffect.shift = 0;
