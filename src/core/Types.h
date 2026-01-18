@@ -150,6 +150,7 @@ struct Duration : public number_wrapper<time_t, Duration> {
   static constexpr auto Microseconds(time_t amount) -> Duration { return Duration(amount); }
   static constexpr auto Max() -> Duration { return Duration(std::numeric_limits<time_t>::max()); }
   static constexpr auto Zero() -> Duration { return Duration(0); }
+  static constexpr auto Immediately() -> Duration { return Duration(0); }
   [[nodiscard]] constexpr auto asSeconds() const -> time_t { return value / 1000000; }
   [[nodiscard]] constexpr auto asMinutes() const -> time_t { return value / 60000000; }
   [[nodiscard]] constexpr auto asMilliseconds() const -> time_t { return value / 1000; }

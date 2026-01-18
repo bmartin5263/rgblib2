@@ -20,12 +20,12 @@ struct FillEffectShaderParameters {
   }
 };
 
-using FillEffectShader = std::function<void(Color&, const FillEffectShaderParameters&)>;
+using FillEffectShader = std::function<Color(Color, const FillEffectShaderParameters&)>;
 
 class PixelList;
 class FillEffect {
-  static auto RainbowShader(Color& pixel, const FillEffectShaderParameters& params) -> void {
-    pixel = rgb::Color::HslToRgb(params.relativePosition()) * Brightness::GetBrightness(1.0f);
+  static auto RainbowShader(Color pixel, const FillEffectShaderParameters& params) -> Color {
+    return rgb::Color::HslToRgb(params.relativePosition()) * Brightness::GetBrightness(1.0f);
   }
 
 public:

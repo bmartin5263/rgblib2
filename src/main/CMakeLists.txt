@@ -58,6 +58,8 @@ idf_component_register(
         "../core/network/priv/OTAESP32.h"
         "../core/pixel/ContiguousPixelList.cpp"
         "../core/pixel/ContiguousPixelList.h"
+        "../core/pixel/DeadPixelList.cpp"
+        "../core/pixel/DeadPixelList.h"
         "../core/pixel/Pixel.h"
         "../core/pixel/PixelGrid.cpp"
         "../core/pixel/PixelGrid.h"
@@ -102,7 +104,6 @@ idf_component_register(
         "../core/time/Timer.h"
         "../core/time/TimerHandle.cpp"
         "../core/time/TimerHandle.h"
-        "../core/time/TimerNode.cpp"
         "../core/time/TimerNode.h"
 
         "../effect/ChasingEffect.cpp"
@@ -110,8 +111,6 @@ idf_component_register(
         "../effect/FillEffect.cpp"
         "../effect/FillEffect.h"
         "../effect/Length.h"
-        "../effect/TrailingEffect.cpp"
-        "../effect/TrailingEffect.h"
 
         "../home/hub/HubApplication.cpp"
         "../home/hub/HubApplication.h"
@@ -143,6 +142,9 @@ idf_component_register(
         "../core/network/priv"
         "../core/priv"
 )
+
+
+
 
 
 target_compile_definitions(${COMPONENT_LIB} PUBLIC

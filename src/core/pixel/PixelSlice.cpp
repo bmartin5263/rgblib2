@@ -3,11 +3,12 @@
 //
 
 #include "PixelSlice.h"
+#include "Assertions.h"
 
 namespace rgb {
 
-PixelSlice::PixelSlice(Pixel* head, uint size) :
-  mHead(head), mSize(size)
+PixelSlice::PixelSlice(Pixel* head, uint size, bool reversed) :
+  ContiguousPixelList(reversed), mHead(head), mSize(size)
 {
 }
 

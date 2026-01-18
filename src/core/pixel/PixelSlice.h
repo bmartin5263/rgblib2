@@ -11,7 +11,7 @@ namespace rgb {
 
 class PixelSlice : public ContiguousPixelList {
 public:
-  PixelSlice(Pixel* head, uint size);
+  PixelSlice(Pixel* head, uint size, bool reversed=false);
 
   auto data() -> Pixel* override;
   auto data() const -> const Pixel* override;
@@ -20,7 +20,6 @@ public:
 private:
   Pixel* mHead;
   uint mSize;
-
 };
 
 }

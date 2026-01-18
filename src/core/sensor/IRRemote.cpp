@@ -59,8 +59,8 @@ auto IRRemote::doStart() -> bool {
   auto channelConfig = rmt_rx_channel_config_t{
     .gpio_num = pin.to<gpio_num_t>(),
     .clk_src = RMT_CLK_SRC_DEFAULT,
-    .resolution_hz = 1'000'000,
-    .mem_block_symbols = 64,
+    .resolution_hz = 1'000'000, // 1 μs per tick
+    .mem_block_symbols = 64, // symbols
     .flags = {
       .invert_in = false,
       .with_dma = false,
@@ -90,11 +90,6 @@ auto IRRemote::doStart() -> bool {
     ERROR("Failed to enable channel: %s", esp_err_to_name(result));
     return false;
   }
-
-  rxConfig = rmt_receive_config_t{
-    .signal_range_min_ns = 1250,
-    .signal_range_max_ns = 12'000'000,
-  };
 
   result = rmt_receive(rxChannel, rxBuffer, sizeof(rxBuffer), &rxConfig);
   if (result != ESP_OK) {

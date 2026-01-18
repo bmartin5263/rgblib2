@@ -8,6 +8,10 @@
 
 namespace rgb {
 
+ContiguousPixelList::ContiguousPixelList(bool reversed): mReversed(reversed) {
+
+}
+
 auto ContiguousPixelList::slice(uint endExclusive) -> PixelSlice {
   return slice(0, endExclusive);
 }
@@ -22,10 +26,24 @@ auto ContiguousPixelList::slice(uint start, uint endExclusive) -> PixelSlice {
   return PixelSlice{newData, length};
 }
 
-auto ContiguousPixelList::get(uint pixel) const -> const Pixel* {
+auto ContiguousPixelList::set(uint pixel, const Color& color) -> void {
+  if (mReversed) {
+    data()[length() - 1 - pixel] = color;
+  }
+  else {
+    data()[pixel] = color;
+  }
+}
+
+auto ContiguousPixelList::get(uint pixel) const -> Pixel {
   ASSERT(pixel >= 0, "Pixel is negative");
   ASSERT(pixel < length(), "Pixel is out of bounds");
-  return data() + pixel;
+  if (mReversed) {
+    return data()[length() - 1 - pixel];
+  }
+  else {
+    return data()[pixel];
+  }
 }
 
 }

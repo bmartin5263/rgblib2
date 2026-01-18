@@ -9,16 +9,16 @@
 
 namespace rgb {
 
-auto FillEffect::draw(PixelList& chain) -> void {
+auto FillEffect::draw(PixelList& pixels) -> void {
   auto params = FillEffectShaderParameters {
     .now = Clock::Now(),
-    .length = chain.length(),
+    .length = pixels.length(),
     .position = 0
   };
-  for (int i = 0; i < chain.length(); ++i) {
-    auto& led = chain[i];
+  for (int i = 0; i < pixels.length(); ++i) {
+    auto pixel = pixels.get(i);
     params.position = i;
-    shader(led, params);
+    pixels.set(i, shader(pixel, params));
   }
 }
 

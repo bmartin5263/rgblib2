@@ -41,7 +41,7 @@ auto Vehicle::connect(PinNumber rx, PinNumber tx) -> bool {
 
 //  debugLed[0] = Color::PURPLE();
 
-  INFO("Vehicle ready");
+  INFO("OBD2 ready");
 //  digitalWrite(rgb::config::LED_VEHICLE_CONNECTED, LOW); TODO
   mConnected = true;
   mLastResponse = Clock::Now();

@@ -11,12 +11,18 @@ namespace rgb {
 class PixelSlice;
 class ContiguousPixelList : public PixelList {
 public:
+  explicit ContiguousPixelList(bool reversed = false);
+
   virtual auto data() -> Pixel* = 0;
   virtual auto data() const -> const Pixel* = 0;
 
   auto slice(uint length) -> PixelSlice;
   auto slice(uint start, uint length) -> PixelSlice;
-  auto get(uint pixel) const -> const Pixel* override;
+  auto get(uint pixel) const -> Pixel override;
+  auto set(uint pixel, const Color& color) -> void override;
+
+protected:
+  bool mReversed;
 };
 
 

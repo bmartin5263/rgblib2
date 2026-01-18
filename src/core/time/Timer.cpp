@@ -99,7 +99,7 @@ auto Timer::continuouslyWhile(const Predicate& function) -> TimerHandle {
   timer->timerFunction = [function](TimerContext& context){
     auto doContinue = function();
     if (doContinue) {
-      context.repeatIn = Duration::Zero();
+      context.repeatIn = Duration::Immediately();
     }
   };
   timer->cancelFunction = DoNothing;

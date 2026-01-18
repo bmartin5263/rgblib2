@@ -40,10 +40,13 @@ private:
   static constexpr uint NEC_PAYLOAD_ONE_DURATION_0 = 560;
   static constexpr uint NEC_PAYLOAD_ONE_DURATION_1 = 1690;
   static constexpr uint NEC_DECODE_MARGIN = 200;
+  static constexpr rmt_receive_config_t rxConfig = rmt_receive_config_t{
+    .signal_range_min_ns = 1250,
+    .signal_range_max_ns = 12'000'000,
+  };
 
   PinNumber pin;
   rmt_channel_handle_t rxChannel = nullptr;
-  rmt_receive_config_t rxConfig = {};
   rmt_symbol_word_t rxBuffer[256] = {};
   QueueHandle_t rxQueue = nullptr;
 };

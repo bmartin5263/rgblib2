@@ -34,6 +34,14 @@ public:
 
   auto isScheduled() -> bool;
 
+  auto operator==(const TimerHandle& rhs) const -> bool {
+    return node == rhs.node && handleId == rhs.handleId;
+  }
+
+  auto operator!=(const TimerHandle& rhs) const -> bool {
+    return !(*this == rhs);
+  }
+
 private:
   uint handleId;
   TimerNode* node;

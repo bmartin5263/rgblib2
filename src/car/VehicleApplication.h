@@ -77,6 +77,7 @@ auto VehicleApplication<UserEvents...>::run() -> void {
 
   xTaskCreatePinnedToCore(subtask, "Subtask", RGB_OTHER_CORE_STACK_SIZE, this, RGB_OTHER_CORE_PRIORITY, nullptr, 1);
 
+  publishSystemEvent(WakeEvent{Clock::Now()});
   INFO("Started Application");
 
   clock.forever([&](){

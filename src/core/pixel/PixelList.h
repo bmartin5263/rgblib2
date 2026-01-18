@@ -22,17 +22,14 @@ using ConstPixelIterator = PixelIteratorBase<const Pixel>;
 class PixelList {
 public:
   [[nodiscard]] virtual auto length() const -> uint = 0;
-  [[nodiscard]] virtual auto get(uint pixel) const -> const Pixel* = 0;
-
-  [[nodiscard]] auto get(uint pixel) -> Pixel*;
-  [[nodiscard]] auto operator[](uint pixel) -> Pixel&;
-  [[nodiscard]] auto operator[](uint pixel) const -> const Pixel&;
+  [[nodiscard]] virtual auto get(uint pixel) const -> Pixel = 0;
+  virtual auto set(uint pixel, const Color& color) -> void = 0;
 
   auto fill(const Color& color) -> void;
   auto fill(const Color& color, uint range) -> void;
   auto fill(const Color& color, uint start, uint endExclusive) -> void;
   auto clear() -> void;
-  auto set(uint pixel, const Color& color) -> void;
+  auto size() -> uint { return length(); };
 
   auto begin() -> PixelIterator;
   auto begin() const -> ConstPixelIterator;
@@ -47,6 +44,28 @@ public:
   virtual ~PixelList() = default;
 };
 
+class PixelProxy {
+  PixelList* list;
+  uint index;
+public:
+  PixelProxy(PixelList* list, uint index) : list(list), index(index) {}
+
+  operator Pixel() const { return list->get(index); } // NOLINT(*-explicit-constructor)
+
+  auto operator=(const Color& color) -> PixelProxy& {
+    list->set(index, color);
+    return *this;
+  }
+};
+
+class PixelPointerProxy {
+  Pixel pixel;
+public:
+  explicit PixelPointerProxy(Pixel p) : pixel(p) {}
+  auto operator->() -> Pixel* { return &pixel; }
+};
+
+
 template<typename PixelType>
 class PixelIteratorBase {
 public:
@@ -57,8 +76,8 @@ public:
 
   PixelIteratorBase(PixelList* list, uint index) : mList(list), mIndex(index) {}
 
-  auto operator*() const -> reference { return (*mList)[mIndex]; }
-  auto operator->() const -> pointer { return &(*mList)[mIndex]; }
+  auto operator*() const -> PixelProxy { return PixelProxy{mList, mIndex}; }
+  auto operator->() const -> PixelPointerProxy { return PixelPointerProxy{mList->get(mIndex)}; }
 
   auto operator++() -> PixelIteratorBase& { ++mIndex; return *this; }
   auto operator++(int) -> PixelIteratorBase { auto tmp = *this; ++mIndex; return tmp; }

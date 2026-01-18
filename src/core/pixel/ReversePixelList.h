@@ -14,7 +14,8 @@ public:
   explicit ReversePixelList(PixelList& source);
 
   auto length() const -> uint override;
-  auto get(uint pixel) const -> const Pixel* override;
+  auto get(uint pixel) const -> Pixel override;
+  auto set(uint pixel, const Color& color) -> void override;
 
 private:
   PixelList& mSource;
