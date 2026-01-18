@@ -2,22 +2,22 @@
 // Created by Brandon on 8/17/25.
 //
 
-#include "ChasingEffectConstantTime.h"
+#include "ChasingEffectV2.h"
 #include "Clock.h"
 
 namespace rgb {
 
-auto ChasingEffectConstantTime::reset() -> void {
+auto ChasingEffectV2::reset() -> void {
 }
 
-auto ChasingEffectConstantTime::update() -> void {
+auto ChasingEffectV2::update() -> void {
 
 }
 
-auto ChasingEffectConstantTime::step() -> void {
+auto ChasingEffectV2::step() -> void {
 }
 
-auto ChasingEffectConstantTime::draw(PixelList& pixels) -> void {
+auto ChasingEffectV2::draw(PixelList& pixels) -> void {
   auto pixelLength = pixels.length();
 
   uint actualTrailLength;
@@ -30,12 +30,20 @@ auto ChasingEffectConstantTime::draw(PixelList& pixels) -> void {
 
   auto params = ShaderParameters {
     .now = Clock::Now(),
-    .duration = duration,
+    .duration = progression.duration,
     .trailLength = actualTrailLength,
     .pixelPosition = 0,
     .trailPosition = 0,
     .positionRatio = 0.0f,
   };
+
+  Duration duration;
+  if (progression.isDelay) {
+    duration = Duration{progression.duration.value * pixelLength};
+  }
+  else {
+    duration = progression.duration;
+  }
 
   auto headPercent = Clock::Now().percentOf(Timestamp{duration.value});
   auto effectPosition = static_cast<uint>(static_cast<float>(pixelLength) * headPercent); // round down
@@ -64,7 +72,7 @@ auto ChasingEffectConstantTime::draw(PixelList& pixels) -> void {
   }
 }
 
-auto ChasingEffectConstantTime::draw(Iterable<PixelList*> pixelLists) -> void {
+auto ChasingEffectV2::draw(Iterable<PixelList*> pixelLists) -> void {
   for (auto list : pixelLists) {
     draw(*list);
   }

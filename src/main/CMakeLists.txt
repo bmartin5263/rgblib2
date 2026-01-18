@@ -108,8 +108,8 @@ idf_component_register(
 
         "../effect/ChasingEffect.cpp"
         "../effect/ChasingEffect.h"
-        "../effect/ChasingEffectConstantTime.cpp"
-        "../effect/ChasingEffectConstantTime.h"
+        "../effect/ChasingEffectV2.cpp"
+        "../effect/ChasingEffectV2.h"
         "../effect/FillEffect.cpp"
         "../effect/FillEffect.h"
         "../effect/Length.h"

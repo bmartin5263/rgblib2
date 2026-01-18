@@ -17,7 +17,7 @@
 #include "ChasingEffect.h"
 #include "DeadPixelList.h"
 #include "PixelSlice.h"
-#include "ChasingEffectConstantTime.h"
+#include "ChasingEffectV2.h"
 
 using namespace rgb;
 
@@ -61,7 +61,7 @@ auto irRemote = IRRemote{PinNumber{4}};
 auto chasingEffect = ChasingEffect{};
 auto ringChasingEffect = ChasingEffect{};
 auto reverseRingChasingEffect = ChasingEffect{};
-auto chasingEffectConstantTime = ChasingEffectConstantTime{};
+auto ChasingEffectV2 = ChasingEffectV2{};
 
 auto firstUpdate = true;
 
@@ -75,12 +75,11 @@ protected:
     chasingEffect.trailLength = Length::Ratio(.2f);
     chasingEffect.buildup = true;
 
-    chasingEffectConstantTime.duration = Duration::Seconds(2);
-    chasingEffectConstantTime.shader = [](auto pixel, auto& params) {
+    chasingEffectV2.shader = [](auto pixel, auto& params) {
       return Color::HslToRgb(Clock::Now().percentOf(Duration::Seconds(5)));
     };
-    chasingEffectConstantTime.trailLength = Length::Ratio(.2f);
-    chasingEffectConstantTime.buildup = true;
+    chasingEffectV2.trailLength = Length::Ratio(.2f);
+    chasingEffectV2.buildup = true;
 
     ringChasingEffect.delay = Duration::Milliseconds(50);
     ringChasingEffect.shader = [](auto pixel, auto& params) {
@@ -213,9 +212,9 @@ protected:
 //    chasingEffect.draw(shortLedStrip);
 
     // Constant Time
-    chasingEffectConstantTime.duration = Duration::Seconds(2);
-    chasingEffectConstantTime.draw(longLedStrip);
-    chasingEffectConstantTime.draw(shortLedStrip);
+    chasingEffectV2.progression = ChaseProgression::ConstantSpeed(Duration::Seconds(1));
+    chasingEffectV2.draw(longLedStrip);
+    chasingEffectV2.draw(shortLedStrip);
 
 //    ring.fill(Color::HslToRgb(rpm / 7000) * .3f, level);
     ringChasingEffect.shift = 0;

@@ -2,14 +2,15 @@
 // Created by Brandon on 8/17/25.
 //
 
-#ifndef RGBLIB_CHASINGEFFECTCONSTANTTIME_H
-#define RGBLIB_CHASINGEFFECTCONSTANTTIME_H
+#ifndef RGBLIB_CHASINGEFFECTV2_H
+#define RGBLIB_CHASINGEFFECTV2_H
 
 #include <optional>
 #include "Types.h"
 #include "PixelList.h"
 #include "Iterable.h"
 #include "Length.h"
+#include "ChaseProgression.h"
 
 namespace rgb {
 
@@ -22,7 +23,7 @@ namespace rgb {
  *   StepBased   - The trail moves at the same speed no matter the length of the LED strip
  *   ChainBased* - The trail moves at a speed that depends on how long the effect should take
  */
-class ChasingEffectConstantTime {
+class ChasingEffectV2 {
 public:
   struct ShaderParameters {
     Timestamp now{};
@@ -56,13 +57,8 @@ public:
   Shader shader{DefaultShader};
 
   // Time it takes for the effect to complete a full cycle
-  Duration duration{Duration::Seconds(2)};
+  ChaseProgression progression{ChaseProgression::ConstantSpeed(Duration::Milliseconds(100))};
 
-private: // TODO - see if this organization affected the memory size
-  // When do we move the effect next
-  rgb::Timestamp nextMoveTime{0};
-
-public:
   // How much the effect should be shifted
   i64 shift{0};
 
@@ -77,4 +73,4 @@ public:
 
 }
 
-#endif //RGBLIB_CHASINGEFFECTCONSTANTTIME_H
+#endif //RGBLIB_CHASINGEFFECTV2_H
